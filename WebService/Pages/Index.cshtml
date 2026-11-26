@@ -1,0 +1,280 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Theo dõi dự án POS quán cà phê";
+    var firstGroupCode = Model.Groups.FirstOrDefault()?.Code ?? "STAFF";
+}
+
+<div class="app-shell">
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="brand-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+                    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                    <line x1="6" x2="6" y1="2" y2="4" />
+                    <line x1="10" x2="10" y1="2" y2="4" />
+                    <line x1="14" x2="14" y1="2" y2="4" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="brand-title">Theo dõi dự án POS quán cà phê</h1>
+                <p class="brand-subtitle">Bảng kiểm tiến độ nghiệp vụ &amp; kỹ thuật · Lưu trực tiếp vào SQL Server</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="header-progress-pill" aria-label="Tiến độ tổng">
+                <div class="header-progress-meta">
+                    <span class="header-progress-label">Tiến độ tổng</span>
+                    <strong class="header-progress-value">
+                        <span id="overall-completed">@Model.CompletedItems</span>/<span id="overall-total">@Model.TotalItems</span>
+                        (<span id="overall-percent">@Model.ProgressPercent</span>%)
+                    </strong>
+                </div>
+                <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Model.ProgressPercent" id="overall-progressbar">
+                    <div class="progress-fill" id="overall-progress-fill" style="width: @Model.ProgressPercent%"></div>
+                </div>
+            </div>
+
+            <button type="button"
+                    id="toggle-summary-btn"
+                    class="btn-primary interactive-press"
+                    aria-expanded="true"
+                    aria-controls="summary-panel">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M15 3v18" />
+                </svg>
+                <span>Tóm tắt dự án</span>
+            </button>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(Model.DatabaseError))
+    {
+        <div class="error-banner" role="alert">
+            <div>
+                <strong>Lỗi kết nối cơ sở dữ liệu</strong>
+                <p>@Model.DatabaseError</p>
+            </div>
+        </div>
+    }
+
+    <div id="save-error-toast" class="toast-error" role="alert" aria-live="assertive" hidden>
+        <div class="toast-content">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" x2="12" y1="8" y2="12" />
+                <line x1="12" x2="12.01" y1="16" y2="16" />
+            </svg>
+            <div>
+                <strong id="toast-title">Không thể lưu trạng thái</strong>
+                <p id="toast-message">Kết nối SQL Server gặp sự cố. Trạng thái cũ đã được giữ nguyên.</p>
+            </div>
+        </div>
+        <div class="toast-actions">
+            <button type="button" id="toast-retry-btn" class="btn-retry interactive-press">Thử lại</button>
+            <button type="button" id="toast-close-btn" class="btn-ghost" aria-label="Đóng thông báo">✕</button>
+        </div>
+    </div>
+
+    <div class="workspace-grid" id="workspace-grid">
+        <main class="checklist-column" aria-label="Danh sách tính năng cần làm">
+            <div class="tabs-bar" role="tablist" aria-label="Nhóm công việc">
+                @foreach (var group in Model.Groups)
+                {
+                    var isSelected = group.Code == firstGroupCode;
+                    var groupCompleted = group.Items.Count(i => i.IsCompleted);
+                    var groupTotal = group.Items.Count;
+                    <button type="button"
+                            role="tab"
+                            class="tab-btn interactive-press @(isSelected ? "is-active" : "")"
+                            id="tab-@group.Code"
+                            aria-selected="@(isSelected ? "true" : "false")"
+                            aria-controls="panel-@group.Code"
+                            data-group-code="@group.Code"
+                            data-group-id="@group.Id">
+                        <span class="tab-name">@group.Name</span>
+                        <span class="tab-counter" data-group-counter="@group.Id">@groupCompleted/@groupTotal</span>
+                    </button>
+                }
+            </div>
+
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.3-4.3" />
+                    </svg>
+                    <input type="search"
+                           id="search-input"
+                           class="search-input"
+                           placeholder="Tìm theo tiêu đề, mô tả hoặc mã công việc..."
+                           aria-label="Tìm kiếm công việc" />
+                </div>
+
+                <div class="filter-pills" role="group" aria-label="Lọc theo trạng thái">
+                    <button type="button" class="filter-pill interactive-press is-active" data-filter="all">Tất cả</button>
+                    <button type="button" class="filter-pill interactive-press" data-filter="pending">Chưa hoàn thành</button>
+                    <button type="button" class="filter-pill interactive-press" data-filter="completed">Đã hoàn thành</button>
+                </div>
+            </div>
+
+            @foreach (var group in Model.Groups)
+            {
+                var isSelected = group.Code == firstGroupCode;
+                <section id="panel-@group.Code"
+                         class="tab-panel @(isSelected ? "is-active" : "")"
+                         role="tabpanel"
+                         aria-labelledby="tab-@group.Code"
+                         data-group-code="@group.Code"
+                         @(isSelected ? "" : "hidden")>
+                    <div class="group-intro">
+                        <p>@group.Description</p>
+                    </div>
+
+                    <div class="cards-list">
+                        @foreach (var item in group.Items)
+                        {
+                            var searchText = $"{item.Code} {item.Title} {item.ShortDescription} {item.AcceptanceCriteria}".ToLowerInvariant();
+                            <article class="task-card @(item.IsCompleted ? "is-completed" : "")"
+                                     data-item-id="@item.Id"
+                                     data-group-id="@item.GroupId"
+                                     data-completed="@(item.IsCompleted ? "true" : "false")"
+                                     data-search="@searchText">
+                                <div class="task-card-main">
+                                    <button type="button"
+                                            class="task-checkbox interactive-press"
+                                            role="checkbox"
+                                            aria-checked="@(item.IsCompleted ? "true" : "false")"
+                                            aria-label="Đánh dấu hoàn thành: @item.Title"
+                                            data-item-id="@item.Id">
+                                        <svg class="checkbox-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path class="checkbox-check" d="M5.5 12.5L10 17L18.5 7.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+
+                                    <div class="task-body">
+                                        <div class="task-header-row">
+                                            <button type="button"
+                                                    class="task-title-btn"
+                                                    aria-expanded="false"
+                                                    aria-controls="details-@item.Id"
+                                                    data-toggle-details="@item.Id">
+                                                <span class="task-title">@item.Title</span>
+                                                <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="m6 9 6 6 6-6" />
+                                                </svg>
+                                            </button>
+
+                                            <div class="task-badges">
+                                                @if (item.IsOpenDecision && !string.IsNullOrWhiteSpace(item.StatusNote))
+                                                {
+                                                    <span class="badge-open-decision">@item.StatusNote</span>
+                                                }
+                                                <span class="badge-status" data-status-badge="@item.Id">
+                                                    @(item.IsCompleted ? "Đã xong" : "Cần làm")
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <p class="task-short-desc">@item.ShortDescription</p>
+                                    </div>
+                                </div>
+
+                                <div id="details-@item.Id" class="task-details" hidden>
+                                    <div class="task-details-inner">
+                                        <div class="criteria-block">
+                                            <h4>Tiêu chí nghiệm thu</h4>
+                                            <ul class="criteria-list">
+                                                @foreach (var line in item.AcceptanceCriteria.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                                                {
+                                                    <li>@line.TrimStart('•', ' ')</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                        <div class="task-meta-footer">
+                                            <span class="meta-code">Mã: <code>@item.Code</code></span>
+                                            <span class="meta-updated" data-updated-at="@item.Id">
+                                                Cập nhật: @item.UpdatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+
+                    <div class="empty-state" hidden>
+                        <div class="empty-icon" aria-hidden="true">☕</div>
+                        <p>Không có công việc nào khớp với từ khóa hoặc bộ lọc hiện tại.</p>
+                    </div>
+                </section>
+            }
+        </main>
+
+        <aside id="summary-panel" class="summary-panel" aria-label="Tóm tắt dự án">
+            <div class="summary-panel-inner">
+                <div class="summary-header">
+                    <h2>Tóm tắt dự án</h2>
+                    <button type="button" id="collapse-summary-btn" class="btn-icon interactive-press" title="Thu gọn bảng tóm tắt" aria-label="Thu gọn bảng tóm tắt">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="stat-card stat-card-hero">
+                    <div class="stat-card-top">
+                        <span class="stat-icon-wrap" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                        </span>
+                        <div>
+                            <div class="stat-label">Tổng tiến độ dự án</div>
+                            <div class="stat-big-number"><span id="summary-percent">@Model.ProgressPercent</span>%</div>
+                        </div>
+                    </div>
+                    <div class="stat-subtext">
+                        Đã hoàn thành <strong id="summary-completed">@Model.CompletedItems</strong> / <strong id="summary-total">@Model.TotalItems</strong> hạng mục
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3 class="stat-section-title">Theo từng nhóm</h3>
+                    <div class="group-stat-list">
+                        @foreach (var group in Model.Groups)
+                        {
+                            var gDone = group.Items.Count(i => i.IsCompleted);
+                            var gTotal = group.Items.Count;
+                            var gPct = gTotal == 0 ? 0 : (int)Math.Round(gDone * 100.0 / gTotal);
+                            <div class="group-stat-row" data-summary-group="@group.Id">
+                                <div class="group-stat-labels">
+                                    <span>@group.Name</span>
+                                    <strong data-summary-count="@group.Id">@gDone/@gTotal</strong>
+                                </div>
+                                <div class="mini-progress-track">
+                                    <div class="mini-progress-fill" data-summary-bar="@group.Id" style="width: @gPct%"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3 class="stat-section-title">Trọng tâm nghiệp vụ (PROJECT.md)</h3>
+                    <ul class="summary-notes">
+                        <li><strong>Kiến trúc đích:</strong> Flutter Web/App + ASP.NET Core Web API + PostgreSQL.</li>
+                        <li><strong>Ca B07:</strong> Một lượt có thể có nhiều đơn đã trả và tối đa 1 đơn đang mở/chờ thanh toán.</li>
+                        <li><strong>Gọi thêm khi chờ QR:</strong> Ẩn QR cũ nhưng giữ mã tham chiếu để đối soát tiền đến muộn.</li>
+                        <li><strong>Trợ lý AI local:</strong> Qwen 2.5 + QLoRA (Ollama/vLLM), Tool Calling &amp; Mini-Form xác nhận.</li>
+                        <li><strong>In bill vật lý:</strong> <span class="inline-open-decision">Quyết định đang để ngỏ</span> (bản đầu chỉ xem chi tiết đơn trên màn hình).</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
