@@ -1,12 +1,16 @@
 using CafePos.Application.Interfaces.CaLam;
 using CafePos.Application.Interfaces.Pos;
+using CafePos.Application.Interfaces.QuanLy.BaoCao;
 using CafePos.Application.Interfaces.QuanLy.NhanVien;
+using CafePos.Application.Interfaces.QuanLy.PhanCa;
 using CafePos.Application.Interfaces.XacThuc;
 using CafePos.Infrastructure.Data;
 using CafePos.Infrastructure.Identity;
 using CafePos.Infrastructure.Services.CaLam;
 using CafePos.Infrastructure.Services.Pos;
+using CafePos.Infrastructure.Services.QuanLy.BaoCao;
 using CafePos.Infrastructure.Services.QuanLy.NhanVien;
+using CafePos.Infrastructure.Services.QuanLy.PhanCa;
 using CafePos.Infrastructure.Services.XacThuc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +61,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPosDashboardService, PosDashboardService>();
         services.AddScoped<IStaffManagementService, StaffManagementService>();
+        services.AddScoped<IReportAnalyticsService, ReportAnalyticsService>();
+        services.AddScoped<IShiftScheduleService, ShiftScheduleService>();
 
         return services;
     }

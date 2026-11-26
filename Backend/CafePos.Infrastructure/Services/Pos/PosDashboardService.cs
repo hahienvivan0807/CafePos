@@ -239,12 +239,22 @@ public class PosDashboardService : IPosDashboardService
                 var orderSuffix = GetOrderLetter(orderSeq);
                 var orderCode = $"DH-{table.Ma}-{session.Id}-{orderSuffix}-{DateTimeOffset.UtcNow.ToUnixTimeSeconds() % 10000}";
 
+                var vnNowHour = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).Hour;
+                var maKhungCa = vnNowHour switch
+                {
+                    < 11 => "CA_SANG",
+                    < 14 => "CA_TRUA",
+                    < 18 => "CA_CHIEU",
+                    _ => "CA_TOI"
+                };
+
                 activeOrder = new DonHang
                 {
                     IdLuotBan = session.Id,
                     Ma = orderCode,
                     TrangThai = OrderStatuses.Open,
                     IdNguoiTao = staffUserId,
+                    MaKhungCa = maKhungCa,
                     TaoLuc = DateTimeOffset.UtcNow
                 };
 

@@ -7,7 +7,9 @@ import '../dung_chung/dich_vu_ban/giao_dien/hop_thoai_mo_ban.dart';
 import '../dung_chung/dich_vu_ban/mo_hinh/du_lieu_ban.dart';
 import '../nen_tang/giao_dien/bang_mau.dart';
 import '../nen_tang/mang/cong_api.dart';
+import 'bao_cao/giao_dien/man_bao_cao_va_du_bao.dart';
 import 'nhan_vien/giao_dien/man_quan_ly_nhan_vien.dart';
+import 'phan_ca/giao_dien/man_phan_ca_va_gio_lam.dart';
 
 /// Không gian Quản lý (Manager Shell) theo hệ thiết kế Daylight & Moss Green
 /// - Bám các màn đã chốt ở Stitch (4907969291961553465)
@@ -674,6 +676,13 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
                   label: 'Quản lý nhân viên',
                 ),
                 _buildSidebarItem(
+                  index: 6,
+                  keyName: 'nav_manager_shift_schedule',
+                  icon: Icons.work_history_rounded,
+                  label: 'Phân ca & Giờ làm',
+                  badge: '4 ca',
+                ),
+                _buildSidebarItem(
                   index: 3,
                   keyName: 'nav_manager_reconciliation',
                   icon: Icons.fact_check_outlined,
@@ -755,13 +764,13 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
   }) {
     final isSelected = _selectedSectionIndex == index;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 4),
       child: InkWell(
         key: Key(keyName),
         borderRadius: BorderRadius.circular(12),
         onTap: () => _selectSection(index),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.daylightSurface
@@ -1177,9 +1186,17 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
       case 3:
         return _buildReconciliationSection();
       case 4:
-        return _buildReportsSection();
+        return ManBaoCaoVaDuBao(
+          apiClient: widget.apiClient,
+          isDesktop: isDesktop,
+        );
       case 5:
         return _buildAiAssistantSection();
+      case 6:
+        return ManPhanCaVaGioLam(
+          apiClient: widget.apiClient,
+          isDesktop: isDesktop,
+        );
       default:
         return _buildManagerOverviewSection(isDesktop: isDesktop);
     }
@@ -2215,20 +2232,6 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
       statusDetail:
           'Trong phạm vi bước hiện tại, hệ thống giữ nguyên hợp đồng API hiện có và chưa bổ sung endpoint nghiệp vụ mới ngoài luồng đăng nhập & tổng quan sẵn có.',
       icon: Icons.fact_check_outlined,
-    );
-  }
-
-  /// 4. Màn Báo cáo & Dự báo (hiển thị trạng thái trống / chưa tích hợp API theo đúng phạm vi)
-  Widget _buildReportsSection() {
-    return _buildPendingIntegrationSection(
-      badge: 'Báo cáo doanh thu & Dự báo nhu cầu',
-      title: 'Báo cáo Doanh thu, Lợi nhuận & Mô hình Dự báo (XGBoost / LightGBM / Prophet)',
-      description:
-          'C# và PostgreSQL dùng chung định nghĩa doanh thu, lợi nhuận, hoàn tiền và món bán chạy cho cả Dashboard Quản lý và Tool Calling của Trợ lý AI, kết hợp gợi ý nhập nguyên liệu theo định mức pha chế.',
-      statusTitle: 'Chưa tích hợp API báo cáo lịch sử & mô hình dự báo Python',
-      statusDetail:
-          'Số liệu bàn & thực đơn trực tiếp đã kết nối ở tab Tổng quan. Phần tổng hợp báo cáo theo kỳ và dự báo bán hàng sẽ được nối khi triển khai API báo cáo.',
-      icon: Icons.stacked_bar_chart_rounded,
     );
   }
 
