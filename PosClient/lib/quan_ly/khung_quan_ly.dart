@@ -10,6 +10,7 @@ import '../nen_tang/mang/cong_api.dart';
 import 'bao_cao/giao_dien/man_bao_cao_va_du_bao.dart';
 import 'nhan_vien/giao_dien/man_quan_ly_nhan_vien.dart';
 import 'phan_ca/giao_dien/man_phan_ca_va_gio_lam.dart';
+import 'tro_ly_ai/giao_dien/man_tro_ly_ai.dart';
 
 /// Không gian Quản lý (Manager Shell) theo hệ thiết kế Daylight & Moss Green
 /// - Bám các màn đã chốt ở Stitch (4907969291961553465)
@@ -2235,17 +2236,14 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
     );
   }
 
-  /// 5. Màn Trợ lý AI tiếng Việt (hiển thị trạng thái trống / chưa tích hợp API theo đúng phạm vi)
+  /// 5. Màn Trợ lý AI tiếng Việt (Daylight AI kết nối Ollama local + Mini-Form)
   Widget _buildAiAssistantSection() {
-    return _buildPendingIntegrationSection(
-      badge: 'Trợ lý AI Local · Qwen 2.5 + QLoRA',
-      title: 'Trợ lý AI tiếng Việt (Tool Calling & Mini-Form xác nhận Human-in-the-Loop)',
-      description:
-          'Hỗ trợ hỏi số liệu kinh doanh bằng tiếng Việt và đề xuất bản nháp thao tác nghiệp vụ (ví dụ: "Thứ Bảy giảm bạc xỉu 10%") qua JSON values + field_meta để Quản lý xem và bấm Xác nhận.',
-      statusTitle: 'Chưa kết nối runtime Ollama / vLLM ở giai đoạn này',
-      statusDetail:
-          'Khung giao diện Quản lý đã sẵn sàng. Luồng gọi model local và render Mini-Form sẽ được kích hoạt ở giai đoạn tích hợp AI.',
-      icon: Icons.auto_awesome_rounded,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: ManTroLyAi(
+        apiClient: widget.apiClient,
+        onToast: _showToast,
+      ),
     );
   }
 

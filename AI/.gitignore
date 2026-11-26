@@ -1,0 +1,14 @@
+# Trọng số model nặng luôn lưu ở D:\AI_Models\, không đẩy lên Git
+*.gguf
+*.onnx
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+
+# Python / Jupyter cache
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/

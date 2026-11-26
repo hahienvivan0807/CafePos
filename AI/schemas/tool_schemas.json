@@ -1,0 +1,131 @@
+{
+  "version": "1.0.0",
+  "project": "PinVuTru Cafe POS - Daylight AI",
+  "base_model_recommended": "Qwen/Qwen2.5-3B-Instruct",
+  "system_prompt": "Bạn là Daylight AI, trợ lý quản lý quán cà phê học bài (PinVuTru Cafe POS) nói tiếng Việt tự nhiên, ngắn gọn, chính xác. LUÔN dùng các công cụ (tools) được cung cấp để lấy số liệu thật từ hệ thống, TUYỆT ĐỐI KHÔNG tự bịa doanh thu, số đơn, tên món hay lịch trực. Với yêu cầu thay đổi dữ liệu (giảm giá món hoặc phân công ca), hãy dùng công cụ tạo bản nháp Mini-Form (draft_menu_promotion hoặc draft_shift_assignment) để quản lý xem và bấm Xác nhận. Nếu yêu cầu thiếu thông tin bắt buộc, hãy hỏi lại ngắn gọn. Nếu yêu cầu ngoài phạm vi quản lý quán cà phê (ví dụ hack, xóa database, viết code không liên quan), hãy từ chối lịch sự.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_shift_revenue",
+        "description": "Lấy báo cáo doanh thu, số đơn đã thanh toán, đơn chờ thanh toán và tổng hợp theo 4 khung ca (CA_SANG, CA_TRUA, CA_CHIEU, CA_TOI) trong khoảng thời gian.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "range": {
+              "type": "string",
+              "enum": ["today", "7d", "30d"],
+              "description": "Khoảng thời gian cần xem: today (hôm nay), 7d (7 ngày gần nhất), 30d (30 ngày gần nhất)."
+            },
+            "shift_code": {
+              "type": "string",
+              "enum": ["ALL", "CA_SANG", "CA_TRUA", "CA_CHIEU", "CA_TOI"],
+              "description": "Mã khung ca cần lọc (mặc định ALL để xem đủ 4 ca)."
+            }
+          },
+          "required": ["range"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_top_products",
+        "description": "Lấy danh sách các món nước bán chạy nhất và doanh thu từng món trong thực đơn quán cà phê học bài.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "range": {
+              "type": "string",
+              "enum": ["today", "7d", "30d"],
+              "description": "Khoảng thời gian thống kê."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "description": "Số lượng món top cần trả về (mặc định 5)."
+            }
+          },
+          "required": ["range"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weekly_shift_gaps",
+        "description": "Kiểm tra lịch phân ca theo tuần xem những ngày/khung ca nào đang thiếu nhân sự so với định biên (Pha chế, Thu ngân, Phục vụ).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "week_offset": {
+              "type": "integer",
+              "enum": [0, 1],
+              "description": "0 là tuần hiện tại, 1 là tuần kế tiếp."
+            }
+          },
+          "required": ["week_offset"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "draft_menu_promotion",
+        "description": "Tạo bản nháp Mini-Form đề xuất khuyến mãi giảm giá cho một món có thật trong thực đơn. KHÔNG tự áp dụng khi quản lý chưa bấm Xác nhận.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "product_name": {
+              "type": "string",
+              "description": "Tên món trong thực đơn (ví dụ: Bạc xỉu, Cold Brew Cam Sả, Matcha Latte Kem Muối)."
+            },
+            "discount_percent": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 50,
+              "description": "Phần trăm giảm giá (từ 5 đến 50)."
+            },
+            "apply_window": {
+              "type": "string",
+              "description": "Khung thời gian áp dụng đề xuất (ví dụ: Ca Chiều hôm nay 14:00 - 18:00, Thứ Bảy tuần này)."
+            }
+          },
+          "required": ["product_name", "discount_percent"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "draft_shift_assignment",
+        "description": "Tạo bản nháp Mini-Form phân công một nhân viên vào một khung ca cụ thể trong tuần. KHÔNG tự lưu khi quản lý chưa bấm Xác nhận.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "staff_keyword": {
+              "type": "string",
+              "description": "Tên hoặc mã đăng nhập nhân viên (ví dụ: nv01, Minh, Lan)."
+            },
+            "shift_code": {
+              "type": "string",
+              "enum": ["CA_SANG", "CA_TRUA", "CA_CHIEU", "CA_TOI"],
+              "description": "Mã khung ca cần xếp."
+            },
+            "work_date": {
+              "type": "string",
+              "description": "Ngày làm việc dạng yyyy-MM-dd (nếu người dùng nói 'hôm nay' hoặc 'ngày mai', tính theo ngày hiện tại)."
+            },
+            "position": {
+              "type": "string",
+              "enum": ["PhaChe", "ThuNgan", "PhucVu"],
+              "description": "Vị trí đảm nhiệm trong ca."
+            }
+          },
+          "required": ["staff_keyword", "shift_code", "position"]
+        }
+      }
+    }
+  ]
+}

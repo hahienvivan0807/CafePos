@@ -1470,6 +1470,141 @@ class PosAuthApiClient {
     }
   }
 
+  /// Lấy trạng thái Ollama & ngữ cảnh cửa hàng (GET /api/manager/ai-assistant/status)
+  Future<ApiResult<Map<String, dynamic>>> getAiAssistantStatusRaw() async {
+    try {
+      final response = await _http
+          .get(
+            Uri.parse('$baseUrl/api/manager/ai-assistant/status'),
+            headers: _buildHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã đồng bộ trạng thái Daylight AI.')
+                .toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể kiểm tra trạng thái Daylight AI.')
+            .toString(),
+        errorCode: (body['errorCode'] ?? 'AI_STATUS_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi kiểm tra trạng thái Daylight AI.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Gửi tin nhắn chat tới Daylight AI qua Ollama local (POST /api/manager/ai-assistant/chat)
+  Future<ApiResult<Map<String, dynamic>>> sendAiChatMessageRaw(
+    Map<String, dynamic> payloadMap,
+  ) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode(payloadMap);
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/manager/ai-assistant/chat'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 125));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/manager/ai-assistant/chat'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 125));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Daylight AI đã phản hồi.').toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Daylight AI không thể phản hồi lúc này.')
+            .toString(),
+        errorCode: (body['errorCode'] ?? 'AI_CHAT_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Hết thời gian chờ hoặc mất kết nối với Daylight AI.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Xác nhận áp dụng Mini-Form của Daylight AI (POST /api/manager/ai-assistant/confirm)
+  Future<ApiResult<Map<String, dynamic>>> confirmAiMiniFormRaw(
+    Map<String, dynamic> payloadMap,
+  ) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode(payloadMap);
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/manager/ai-assistant/confirm'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/manager/ai-assistant/confirm'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 15));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã xác nhận áp dụng thay đổi.')
+                .toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể xác nhận áp dụng bản nháp.').toString(),
+        errorCode: (body['errorCode'] ?? 'AI_CONFIRM_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi xác nhận Mini-Form.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
   static Map<String, dynamic> _decodeJson(String raw) {
     if (raw.trim().isEmpty) return const {};
     try {
