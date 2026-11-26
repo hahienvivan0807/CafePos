@@ -19,6 +19,8 @@ public class CafePosDbContext : IdentityDbContext<AppIdentityUser, AppIdentityRo
 
     public DbSet<HoSoNguoiDung> HoSoNguoiDungs => Set<HoSoNguoiDung>();
     public DbSet<CaLamViec> CaLamViecs => Set<CaLamViec>();
+    public DbSet<KhungCaLam> KhungCaLams => Set<KhungCaLam>();
+    public DbSet<PhanCaNhanVien> PhanCaNhanViens => Set<PhanCaNhanVien>();
     public DbSet<DanhMucMon> DanhMucMons => Set<DanhMucMon>();
     public DbSet<Mon> Mons => Set<Mon>();
     public DbSet<Ban> Bans => Set<Ban>();
@@ -228,6 +230,53 @@ public class CafePosDbContext : IdentityDbContext<AppIdentityUser, AppIdentityRo
                 .HasForeignKey(x => x.IdBan);
         });
 
+        // 13b. Bảng pos."KhungCaLam"
+        builder.Entity<KhungCaLam>(entity =>
+        {
+            entity.ToTable("KhungCaLam", "pos");
+            entity.HasKey(x => x.Ma);
+            entity.Property(x => x.Ma).HasColumnName("Ma").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.TenCa).HasColumnName("TenCa").IsRequired().HasMaxLength(120);
+            entity.Property(x => x.GioBatDau).HasColumnName("GioBatDau");
+            entity.Property(x => x.GioKetThuc).HasColumnName("GioKetThuc");
+            entity.Property(x => x.QuaDem).HasColumnName("QuaDem").HasDefaultValue(false);
+            entity.Property(x => x.NghiGiuaCaPhut).HasColumnName("NghiGiuaCaPhut").HasDefaultValue(0);
+            entity.Property(x => x.DinhBienPhaChe).HasColumnName("DinhBienPhaChe").HasDefaultValue(1);
+            entity.Property(x => x.DinhBienThuNgan).HasColumnName("DinhBienThuNgan").HasDefaultValue(1);
+            entity.Property(x => x.DinhBienPhucVu).HasColumnName("DinhBienPhucVu").HasDefaultValue(1);
+            entity.Property(x => x.DangApDung).HasColumnName("DangApDung").HasDefaultValue(true);
+            entity.Property(x => x.GhiChuBanGiao).HasColumnName("GhiChuBanGiao");
+            entity.Property(x => x.ThuTu).HasColumnName("ThuTu");
+            entity.Property(x => x.CapNhatLuc).HasColumnName("CapNhatLuc").HasDefaultValueSql("now()");
+        });
+
+        // 13c. Bảng pos."PhanCaNhanVien"
+        builder.Entity<PhanCaNhanVien>(entity =>
+        {
+            entity.ToTable("PhanCaNhanVien", "pos");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("Id");
+            entity.Property(x => x.NgayLam).HasColumnName("NgayLam");
+            entity.Property(x => x.MaKhungCa).HasColumnName("MaKhungCa").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.IdNguoiDung).HasColumnName("IdNguoiDung");
+            entity.Property(x => x.ViTri).HasColumnName("ViTri").IsRequired().HasMaxLength(32);
+            entity.Property(x => x.GioVao).HasColumnName("GioVao");
+            entity.Property(x => x.GioRa).HasColumnName("GioRa");
+            entity.Property(x => x.TrangThaiTuan).HasColumnName("TrangThaiTuan").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.TrangThai).HasColumnName("TrangThai").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.LyDoHuy).HasColumnName("LyDoHuy");
+            entity.Property(x => x.TaoLuc).HasColumnName("TaoLuc").HasDefaultValueSql("now()");
+            entity.Property(x => x.CapNhatLuc).HasColumnName("CapNhatLuc").HasDefaultValueSql("now()");
+
+            entity.HasOne(x => x.KhungCa)
+                .WithMany(k => k.DanhSachPhanCa)
+                .HasForeignKey(x => x.MaKhungCa)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => new { x.NgayLam, x.MaKhungCa })
+                .HasDatabaseName("IdxPhanCaNgayKhungCa");
+        });
+
         // 14. Bảng pos."DonHang"
         builder.Entity<DonHang>(entity =>
         {
@@ -238,12 +287,18 @@ public class CafePosDbContext : IdentityDbContext<AppIdentityUser, AppIdentityRo
             entity.Property(x => x.Ma).HasColumnName("Ma").IsRequired().HasMaxLength(40);
             entity.Property(x => x.TrangThai).HasColumnName("TrangThai").IsRequired().HasMaxLength(24);
             entity.Property(x => x.IdNguoiTao).HasColumnName("IdNguoiTao");
+            entity.Property(x => x.MaKhungCa).HasColumnName("MaKhungCa").HasMaxLength(24);
             entity.Property(x => x.TaoLuc).HasColumnName("TaoLuc").HasDefaultValueSql("now()");
             entity.Property(x => x.ThanhToanLuc).HasColumnName("ThanhToanLuc");
 
             entity.HasOne(x => x.LuotBan)
                 .WithMany(l => l.DanhSachDonHang)
                 .HasForeignKey(x => x.IdLuotBan);
+
+            entity.HasOne(x => x.KhungCa)
+                .WithMany(k => k.DanhSachDonHang)
+                .HasForeignKey(x => x.MaKhungCa)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // 15. Bảng pos."DongMon"

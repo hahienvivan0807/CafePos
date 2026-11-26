@@ -872,6 +872,604 @@ class PosAuthApiClient {
     }
   }
 
+  /// Lấy báo cáo kết quả vận hành (GET /api/manager/reports/revenue-analytics)
+  Future<ApiResult<Map<String, dynamic>>> getRevenueAnalyticsRaw({
+    String? fromDate,
+    String? toDate,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (fromDate != null && fromDate.isNotEmpty) {
+        queryParams['from'] = fromDate;
+      }
+      if (toDate != null && toDate.isNotEmpty) {
+        queryParams['to'] = toDate;
+      }
+
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/reports/revenue-analytics',
+      ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+
+      final response = await _http
+          .get(uri, headers: _buildHeaders())
+          .timeout(const Duration(seconds: 8));
+
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Tải báo cáo vận hành thành công.')
+                .toString(),
+          );
+        }
+      }
+
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải dữ liệu báo cáo vận hành.')
+            .toString(),
+        errorCode: (body['errorCode'] ?? 'REPORT_LOAD_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải báo cáo kinh doanh.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Lấy dữ liệu dự báo Daylight AI (GET /api/manager/reports/ai-forecast)
+  Future<ApiResult<Map<String, dynamic>>> getAiForecastRaw({
+    String? fromDate,
+    String? toDate,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (fromDate != null && fromDate.isNotEmpty) {
+        queryParams['from'] = fromDate;
+      }
+      if (toDate != null && toDate.isNotEmpty) {
+        queryParams['to'] = toDate;
+      }
+
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/reports/ai-forecast',
+      ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+
+      final response = await _http
+          .get(uri, headers: _buildHeaders())
+          .timeout(const Duration(seconds: 8));
+
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Tải dự báo Daylight AI thành công.')
+                .toString(),
+          );
+        }
+      }
+
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải dữ liệu dự báo Daylight AI.')
+            .toString(),
+        errorCode: (body['errorCode'] ?? 'FORECAST_LOAD_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải dữ liệu dự báo AI.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Lấy danh sách hóa đơn theo khung ca (GET /api/manager/reports/shift-orders)
+  Future<ApiResult<Map<String, dynamic>>> getShiftOrdersRaw({
+    required String slot,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    try {
+      final queryParams = <String, String>{'slot': slot};
+      if (fromDate != null && fromDate.isNotEmpty) {
+        queryParams['from'] = fromDate;
+      }
+      if (toDate != null && toDate.isNotEmpty) {
+        queryParams['to'] = toDate;
+      }
+
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/reports/shift-orders',
+      ).replace(queryParameters: queryParams);
+
+      final response = await _http
+          .get(uri, headers: _buildHeaders())
+          .timeout(const Duration(seconds: 8));
+
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Tải danh sách hóa đơn ca thành công.')
+                .toString(),
+          );
+        }
+      }
+
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải danh sách hóa đơn trong ca.')
+            .toString(),
+        errorCode: (body['errorCode'] ?? 'SHIFT_ORDERS_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải danh sách hóa đơn theo ca.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Lấy chi tiết một hóa đơn (GET /api/dashboard/orders/{orderId})
+  Future<ApiResult<Map<String, dynamic>>> getOrderDetailsRaw(
+    int orderId,
+  ) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/dashboard/orders/$orderId');
+      final response = await _http
+          .get(uri, headers: _buildHeaders())
+          .timeout(const Duration(seconds: 8));
+
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Tải chi tiết hóa đơn thành công.')
+                .toString(),
+          );
+        }
+      }
+
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải chi tiết hóa đơn.').toString(),
+        errorCode: (body['errorCode'] ?? 'ORDER_DETAIL_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải chi tiết hóa đơn.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Lấy danh mục khung ca (GET /api/manager/shift-schedule/templates)
+  Future<ApiResult<List<Map<String, dynamic>>>> getShiftTemplatesRaw({
+    String? search,
+    String? status,
+  }) async {
+    try {
+      final q = <String, String>{};
+      if (search != null && search.trim().isNotEmpty) q['search'] = search.trim();
+      if (status != null && status.trim().isNotEmpty) q['status'] = status.trim();
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/shift-schedule/templates',
+      ).replace(queryParameters: q.isEmpty ? null : q);
+
+      final response = await _http
+          .get(uri, headers: _buildHeaders())
+          .timeout(const Duration(seconds: 8));
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final list = (body['data'] as List? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+        return ApiResult.success(
+          list,
+          message: (body['message'] ?? 'Tải danh mục khung ca thành công.')
+              .toString(),
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải danh mục khung ca.').toString(),
+        errorCode: (body['errorCode'] ?? 'TEMPLATES_LOAD_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải danh mục khung ca.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Tạo mới khung ca (POST /api/manager/shift-schedule/templates)
+  Future<ApiResult<Map<String, dynamic>>> createShiftTemplateRaw(
+    Map<String, dynamic> payloadMap,
+  ) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode(payloadMap);
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/manager/shift-schedule/templates'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/manager/shift-schedule/templates'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 8));
+      }
+      final body = _decodeJson(response.body);
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          body['isSuccess'] == true &&
+          body['data'] is Map<String, dynamic>) {
+        return ApiResult.success(
+          body['data'] as Map<String, dynamic>,
+          message: (body['message'] ?? 'Đã tạo khung ca thành công.').toString(),
+          statusCode: response.statusCode,
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tạo khung ca.').toString(),
+        errorCode: (body['errorCode'] ?? 'CREATE_TEMPLATE_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tạo khung ca.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Cập nhật khung ca (PUT /api/manager/shift-schedule/templates/{code})
+  Future<ApiResult<Map<String, dynamic>>> updateShiftTemplateRaw(
+    String code,
+    Map<String, dynamic> payloadMap,
+  ) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode(payloadMap);
+      final url = '$baseUrl/api/manager/shift-schedule/templates/$code';
+      var response = await _http
+          .put(
+            Uri.parse(url),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .put(
+              Uri.parse(url),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 8));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 &&
+          body['isSuccess'] == true &&
+          body['data'] is Map<String, dynamic>) {
+        return ApiResult.success(
+          body['data'] as Map<String, dynamic>,
+          message: (body['message'] ?? 'Đã cập nhật khung ca.').toString(),
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể cập nhật khung ca.').toString(),
+        errorCode: (body['errorCode'] ?? 'UPDATE_TEMPLATE_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi cập nhật khung ca.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Xóa hoặc ngừng sử dụng khung ca (DELETE /api/manager/shift-schedule/templates/{code})
+  Future<ApiResult<bool>> deleteShiftTemplateRaw(
+    String code, {
+    String? reason,
+  }) async {
+    try {
+      await _ensureCsrfToken();
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/shift-schedule/templates/$code',
+      ).replace(
+        queryParameters: reason != null && reason.trim().isNotEmpty
+            ? {'reason': reason.trim()}
+            : null,
+      );
+      var response = await _http
+          .delete(uri, headers: _buildHeaders(includeCsrf: true))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .delete(uri, headers: _buildHeaders(includeCsrf: true))
+            .timeout(const Duration(seconds: 8));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        return ApiResult.success(
+          true,
+          message: (body['message'] ?? 'Đã xử lý khung ca thành công.')
+              .toString(),
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể xóa/ngừng dùng khung ca.').toString(),
+        errorCode: (body['errorCode'] ?? 'DELETE_TEMPLATE_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi xóa khung ca.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Tải lịch phân ca tuần (GET /api/manager/shift-schedule/week)
+  Future<ApiResult<Map<String, dynamic>>> getWeeklyScheduleRaw({
+    String? weekStart,
+  }) async {
+    try {
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/shift-schedule/week',
+      ).replace(
+        queryParameters: weekStart != null && weekStart.isNotEmpty
+            ? {'weekStart': weekStart}
+            : null,
+      );
+      final response = await _http
+          .get(uri, headers: _buildHeaders())
+          .timeout(const Duration(seconds: 8));
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 &&
+          body['isSuccess'] == true &&
+          body['data'] is Map<String, dynamic>) {
+        return ApiResult.success(
+          body['data'] as Map<String, dynamic>,
+          message: (body['message'] ?? 'Tải lịch phân ca tuần thành công.')
+              .toString(),
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải lịch phân ca tuần.').toString(),
+        errorCode: (body['errorCode'] ?? 'WEEK_LOAD_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải lịch phân ca tuần.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Gán nhân viên vào ca (POST /api/manager/shift-schedule/assignments)
+  Future<ApiResult<Map<String, dynamic>>> assignStaffToShiftRaw(
+    Map<String, dynamic> payloadMap,
+  ) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode(payloadMap);
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/manager/shift-schedule/assignments'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/manager/shift-schedule/assignments'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 8));
+      }
+      final body = _decodeJson(response.body);
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          body['isSuccess'] == true &&
+          body['data'] is Map<String, dynamic>) {
+        return ApiResult.success(
+          body['data'] as Map<String, dynamic>,
+          message: (body['message'] ?? 'Đã phân công nhân viên thành công.')
+              .toString(),
+          statusCode: response.statusCode,
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể phân công nhân viên vào ca.').toString(),
+        errorCode: (body['errorCode'] ?? 'ASSIGN_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi phân công nhân viên.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Hủy phân công nhân viên (DELETE /api/manager/shift-schedule/assignments/{id})
+  Future<ApiResult<bool>> cancelShiftAssignmentRaw(
+    int id, {
+    String? reason,
+  }) async {
+    try {
+      await _ensureCsrfToken();
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/shift-schedule/assignments/$id',
+      ).replace(
+        queryParameters: reason != null && reason.trim().isNotEmpty
+            ? {'reason': reason.trim()}
+            : null,
+      );
+      var response = await _http
+          .delete(uri, headers: _buildHeaders(includeCsrf: true))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .delete(uri, headers: _buildHeaders(includeCsrf: true))
+            .timeout(const Duration(seconds: 8));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        return ApiResult.success(
+          true,
+          message: (body['message'] ?? 'Đã hủy phân công ca.').toString(),
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể hủy phân công ca.').toString(),
+        errorCode: (body['errorCode'] ?? 'CANCEL_ASSIGN_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi hủy phân công ca.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Công bố lịch tuần (POST /api/manager/shift-schedule/week/publish)
+  Future<ApiResult<bool>> publishWeekScheduleRaw(String weekStartIso) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode({'weekStart': weekStartIso});
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/manager/shift-schedule/week/publish'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/manager/shift-schedule/week/publish'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 8));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        return ApiResult.success(
+          true,
+          message: (body['message'] ?? 'Đã công bố lịch phân ca tuần.')
+              .toString(),
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể công bố lịch tuần.').toString(),
+        errorCode: (body['errorCode'] ?? 'PUBLISH_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi công bố lịch tuần.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Sao chép lịch từ tuần trước (POST /api/manager/shift-schedule/week/copy-previous)
+  Future<ApiResult<int>> copyPreviousWeekScheduleRaw(
+    String weekStartIso,
+  ) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode({'weekStart': weekStartIso});
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/manager/shift-schedule/week/copy-previous'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse(
+                '$baseUrl/api/manager/shift-schedule/week/copy-previous',
+              ),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 8));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        return ApiResult.success(
+          (body['data'] as num?)?.toInt() ?? 0,
+          message: (body['message'] ?? 'Đã sao chép lịch tuần trước.')
+              .toString(),
+        );
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể sao chép lịch tuần trước.').toString(),
+        errorCode: (body['errorCode'] ?? 'COPY_WEEK_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi sao chép lịch tuần trước.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
   static Map<String, dynamic> _decodeJson(String raw) {
     if (raw.trim().isEmpty) return const {};
     try {

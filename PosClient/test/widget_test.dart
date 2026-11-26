@@ -256,9 +256,13 @@ void main() {
 
       expect(find.text('Tổng quan quản lý'), findsOneWidget);
       expect(find.text('Điểm vào POS / Sơ đồ bàn'), findsOneWidget);
+      expect(find.text('Phân ca & Giờ làm'), findsOneWidget);
       expect(find.text('Đối soát & Duyệt hủy món'), findsOneWidget);
       expect(find.text('Báo cáo & Dự báo'), findsOneWidget);
-      expect(find.text('Trợ lý AI tiếng Việt'), findsOneWidget);
+      expect(
+        find.text('Trợ lý AI tiếng Việt', skipOffstage: false),
+        findsOneWidget,
+      );
       expect(find.text('Cà phê sữa'), findsOneWidget);
 
       // 4. Kiểm tra Màn 24 (Quản lý nhân viên) hiển thị 3 nhân sự + Modal 25 (Thêm) + Modal 26 (Chỉnh sửa)

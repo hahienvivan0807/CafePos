@@ -84,6 +84,50 @@ public class LuotBan
 }
 
 /// <summary>
+/// Danh mục các khung ca làm việc chuẩn của quán (ánh xạ bảng pos."KhungCaLam")
+/// </summary>
+public class KhungCaLam
+{
+    public string Ma { get; set; } = string.Empty; // CA_SANG | CA_TRUA | CA_CHIEU | CA_TOI ...
+    public string TenCa { get; set; } = string.Empty;
+    public TimeOnly GioBatDau { get; set; }
+    public TimeOnly GioKetThuc { get; set; }
+    public bool QuaDem { get; set; }
+    public int NghiGiuaCaPhut { get; set; }
+    public int DinhBienPhaChe { get; set; } = 1;
+    public int DinhBienThuNgan { get; set; } = 1;
+    public int DinhBienPhucVu { get; set; } = 1;
+    public bool DangApDung { get; set; } = true;
+    public string? GhiChuBanGiao { get; set; }
+    public int ThuTu { get; set; }
+    public DateTimeOffset CapNhatLuc { get; set; } = DateTimeOffset.UtcNow;
+
+    public ICollection<DonHang> DanhSachDonHang { get; set; } = new List<DonHang>();
+    public ICollection<PhanCaNhanVien> DanhSachPhanCa { get; set; } = new List<PhanCaNhanVien>();
+}
+
+/// <summary>
+/// Bảng trung gian phân công nhân viên vào từng khung ca theo ngày (ánh xạ bảng pos."PhanCaNhanVien")
+/// </summary>
+public class PhanCaNhanVien
+{
+    public long Id { get; set; }
+    public DateOnly NgayLam { get; set; }
+    public string MaKhungCa { get; set; } = string.Empty;
+    public Guid IdNguoiDung { get; set; }
+    public string ViTri { get; set; } = "PhaChe"; // PhaChe | ThuNgan | PhucVu | TruongCa
+    public TimeOnly GioVao { get; set; }
+    public TimeOnly GioRa { get; set; }
+    public string TrangThaiTuan { get; set; } = "Nhap"; // Nhap | DaCongBo
+    public string TrangThai { get; set; } = "HoatDong"; // HoatDong | DaHuy
+    public string? LyDoHuy { get; set; }
+    public DateTimeOffset TaoLuc { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset CapNhatLuc { get; set; } = DateTimeOffset.UtcNow;
+
+    public KhungCaLam? KhungCa { get; set; }
+}
+
+/// <summary>
 /// Thực thể Đơn hàng trong một lượt bàn (ánh xạ bảng pos."DonHang")
 /// TrangThai: 'open' | 'awaiting_payment' | 'paid' | 'cancelled'
 /// </summary>
@@ -94,10 +138,12 @@ public class DonHang
     public string Ma { get; set; } = string.Empty;
     public string TrangThai { get; set; } = Constants.OrderStatuses.Open;
     public Guid IdNguoiTao { get; set; }
+    public string? MaKhungCa { get; set; }
     public DateTimeOffset TaoLuc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? ThanhToanLuc { get; set; }
 
     public LuotBan? LuotBan { get; set; }
+    public KhungCaLam? KhungCa { get; set; }
     public ICollection<DongMon> DanhSachDongMon { get; set; } = new List<DongMon>();
 }
 

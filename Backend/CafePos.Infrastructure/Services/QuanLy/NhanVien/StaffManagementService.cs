@@ -400,7 +400,7 @@ public class StaffManagementService : IStaffManagementService
                 "Không thể xóa tài khoản nhân viên.", "DELETE_STAFF_FAILED", 500);
         }
 
-        return ServiceResult<bool>.Success(
+        return ServiceResult<bool>.Success( 
             true,
             $"Đã xóa tài khoản nhân viên '{user.HoSo?.HoTen ?? user.UserName}' thành công.");
     }
