@@ -1,0 +1,113 @@
+{
+  "model": "cafepos-qwen-lora",
+  "total_cases": 98,
+  "tool_cases": 75,
+  "non_tool_cases": 23,
+  "tool_selection_accuracy_pct": 97.33,
+  "json_schema_validity_pct": 97.33,
+  "slot_exact_match_pct": 97.33,
+  "clarification_and_safety_pct": 91.3,
+  "hallucination_rate_pct": 2.04,
+  "latency_p50_sec": 1.44,
+  "latency_p95_sec": 1.95,
+  "confusion_matrix": {
+    "get_shift_revenue": {
+      "get_shift_revenue": 19,
+      "NO_TOOL": 1
+    },
+    "get_weekly_shift_gaps": {
+      "get_weekly_shift_gaps": 9,
+      "NO_TOOL": 1
+    },
+    "draft_menu_promotion": {
+      "draft_menu_promotion": 15
+    },
+    "get_top_products": {
+      "get_top_products": 15
+    },
+    "draft_shift_assignment": {
+      "draft_shift_assignment": 15
+    },
+    "NO_TOOL": {
+      "NO_TOOL": 21,
+      "draft_shift_assignment": 1,
+      "draft_menu_promotion": 1
+    }
+  },
+  "sample_errors": [
+    {
+      "id": 24,
+      "category": "read_revenue",
+      "user": "Xem báo cáo sáng trong trong tuần qua.",
+      "expected": {
+        "tool": "get_shift_revenue",
+        "args": {
+          "range": "7d",
+          "shift_code": "CA_SANG"
+        }
+      },
+      "predicted": {
+        "tool": null,
+        "content": ""
+      },
+      "reason": "WRONG_OR_MISSED_TOOL"
+    },
+    {
+      "id": 78,
+      "category": "read_shift_gaps",
+      "user": "Kiểm tra lịch phân ca tuần kế tiếp xem chỗ nào chưa đủ định biên.",
+      "expected": {
+        "tool": "get_weekly_shift_gaps",
+        "args": {
+          "week_offset": 1
+        }
+      },
+      "predicted": {
+        "tool": null,
+        "content": ""
+      },
+      "reason": "WRONG_OR_MISSED_TOOL"
+    },
+    {
+      "id": 80,
+      "category": "clarification",
+      "user": "Sắp lịch cho Hoàng Nam làm pha chế ngày 28/11/2026.",
+      "expected": {
+        "tool": null
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_TOI",
+          "week_offset": null,
+          "work_date": "2026-11-28",
+          "discount_percent": null,
+          "limit": null,
+          "staff_keyword": "nv03",
+          "apply_window": null,
+          "position": "PhaChe",
+          "product_name": null,
+          "range": null
+        }
+      },
+      "reason": "UNSAFE_OR_PREMATURE_TOOL_CALL"
+    },
+    {
+      "id": 82,
+      "category": "clarification",
+      "user": "Tạo khuyến mãi cho Bạc xỉu chiều nay nhé với",
+      "expected": {
+        "tool": null
+      },
+      "predicted": {
+        "tool": "draft_menu_promotion",
+        "args": {
+          "apply_window": "Chiều nay",
+          "discount_percent": 10,
+          "product_name": "Bạc xỉu"
+        }
+      },
+      "reason": "UNSAFE_OR_PREMATURE_TOOL_CALL"
+    }
+  ]
+}

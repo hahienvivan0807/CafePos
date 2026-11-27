@@ -3,6 +3,7 @@ using CafePos.Application.Interfaces.Pos;
 using CafePos.Application.Interfaces.QuanLy.BaoCao;
 using CafePos.Application.Interfaces.QuanLy.NhanVien;
 using CafePos.Application.Interfaces.QuanLy.PhanCa;
+using CafePos.Application.Interfaces.QuanLy.TroLyAi;
 using CafePos.Application.Interfaces.XacThuc;
 using CafePos.Infrastructure.Data;
 using CafePos.Infrastructure.Identity;
@@ -11,6 +12,7 @@ using CafePos.Infrastructure.Services.Pos;
 using CafePos.Infrastructure.Services.QuanLy.BaoCao;
 using CafePos.Infrastructure.Services.QuanLy.NhanVien;
 using CafePos.Infrastructure.Services.QuanLy.PhanCa;
+using CafePos.Infrastructure.Services.QuanLy.TroLyAi;
 using CafePos.Infrastructure.Services.XacThuc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +65,15 @@ public static class DependencyInjection
         services.AddScoped<IStaffManagementService, StaffManagementService>();
         services.AddScoped<IReportAnalyticsService, ReportAnalyticsService>();
         services.AddScoped<IShiftScheduleService, ShiftScheduleService>();
+        services.AddScoped<IAiAssistantService, OllamaAiAssistantService>();
+
+        var ollamaTimeoutSec = int.TryParse(configuration["Ollama:TimeoutSeconds"], out var tSec) && tSec > 0
+            ? tSec
+            : 120;
+        services.AddHttpClient("Ollama", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(ollamaTimeoutSec);
+        });
 
         return services;
     }

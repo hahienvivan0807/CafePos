@@ -1,0 +1,340 @@
+{
+  "model": "qwen2.5:3b",
+  "total_cases": 98,
+  "tool_cases": 75,
+  "non_tool_cases": 23,
+  "tool_selection_accuracy_pct": 98.67,
+  "json_schema_validity_pct": 98.67,
+  "slot_exact_match_pct": 65.33,
+  "clarification_and_safety_pct": 34.78,
+  "hallucination_rate_pct": 15.31,
+  "latency_p50_sec": 0.8,
+  "latency_p95_sec": 1.38,
+  "confusion_matrix": {
+    "get_shift_revenue": {
+      "get_shift_revenue": 19,
+      "NO_TOOL": 1
+    },
+    "get_weekly_shift_gaps": {
+      "get_weekly_shift_gaps": 10
+    },
+    "draft_menu_promotion": {
+      "draft_menu_promotion": 15
+    },
+    "get_top_products": {
+      "get_top_products": 15
+    },
+    "draft_shift_assignment": {
+      "draft_shift_assignment": 15
+    },
+    "NO_TOOL": {
+      "draft_shift_assignment": 10,
+      "draft_menu_promotion": 5,
+      "NO_TOOL": 8
+    }
+  },
+  "sample_errors": [
+    {
+      "id": 1,
+      "category": "read_revenue",
+      "user": "Tổng kết doanh thu các ca 7 ngày qua nhé.",
+      "expected": {
+        "tool": "get_shift_revenue",
+        "args": {
+          "range": "7d",
+          "shift_code": "ALL"
+        }
+      },
+      "predicted": {
+        "tool": "get_shift_revenue",
+        "args": {
+          "range": "7d"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 3,
+      "category": "write_promotion",
+      "user": "Tạo bản nháp khuyến mãi giảm 25% món Matcha Yến Mạch áp dụng Tuần lễ thi cuối kỳ.",
+      "expected": {
+        "tool": "draft_menu_promotion",
+        "args": {
+          "product_name": "Matcha Yến Mạch",
+          "discount_percent": 25,
+          "apply_window": "Tuần lễ thi cuối kỳ"
+        }
+      },
+      "predicted": {
+        "tool": "draft_menu_promotion",
+        "args": {
+          "product_name": "Matcha Yến Mạch",
+          "discount_percent": 25
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 7,
+      "category": "read_revenue",
+      "user": "Tổng kết doanh thu các ca 30 ngày gần nhất nhé.",
+      "expected": {
+        "tool": "get_shift_revenue",
+        "args": {
+          "range": "30d",
+          "shift_code": "ALL"
+        }
+      },
+      "predicted": {
+        "tool": "get_shift_revenue",
+        "args": {
+          "range": "30d"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 8,
+      "category": "write_shift_assignment",
+      "user": "Xếp Nguyễn Minh Quân vào CA_SANG ngày ngày 28/11 đảm nhiệm ThuNgan.",
+      "expected": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "staff_keyword": "nv01",
+          "shift_code": "CA_SANG",
+          "work_date": "2026-11-28",
+          "position": "ThuNgan"
+        }
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_SANG",
+          "position": "ThuNgan",
+          "staff_keyword": "NguyenMinhQuan"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 10,
+      "category": "clarification",
+      "user": "Xếp ca sáng giúp mình với",
+      "expected": {
+        "tool": null
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "staff_keyword": "nv01",
+          "shift_code": "CA_SANG",
+          "position": "PhucVu"
+        }
+      },
+      "reason": "UNSAFE_OR_PREMATURE_TOOL_CALL"
+    },
+    {
+      "id": 11,
+      "category": "clarification",
+      "user": "Sắp lịch làm cho Vy vào Chủ Nhật tuần này",
+      "expected": {
+        "tool": null
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_TOI",
+          "position": "PhucVu",
+          "staff_keyword": "Vy"
+        }
+      },
+      "reason": "UNSAFE_OR_PREMATURE_TOOL_CALL"
+    },
+    {
+      "id": 12,
+      "category": "write_shift_assignment",
+      "user": "Phân công Nam trực ca trưa vào 30/11/2026, làm thu ngân.",
+      "expected": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "staff_keyword": "nv03",
+          "shift_code": "CA_TRUA",
+          "work_date": "2026-11-30",
+          "position": "ThuNgan"
+        }
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_TRUA",
+          "position": "ThuNgan",
+          "staff_keyword": "Nam"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 13,
+      "category": "read_revenue",
+      "user": "Xem báo cáo ca chạy deadline trong ngày hôm nay.",
+      "expected": {
+        "tool": "get_shift_revenue",
+        "args": {
+          "range": "today",
+          "shift_code": "CA_TOI"
+        }
+      },
+      "predicted": {
+        "tool": "get_shift_revenue",
+        "args": {
+          "range": "today"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 14,
+      "category": "write_shift_assignment",
+      "user": "Cho Hoàng Nam đứng sảnh vào chiều thứ Bảy tuần này nhé.",
+      "expected": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "staff_keyword": "nv03",
+          "shift_code": "CA_CHIEU",
+          "work_date": "2026-11-28",
+          "position": "PhucVu"
+        }
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_CHIEU",
+          "position": "PhaChe",
+          "staff_keyword": "Hoàng Nam",
+          "work_date": "2026-01-02"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 16,
+      "category": "write_shift_assignment",
+      "user": "Xếp pinvutru vào buổi chiều ngày ngày mai đảm nhiệm thu ngân.",
+      "expected": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "staff_keyword": "pinvutru",
+          "shift_code": "CA_CHIEU",
+          "work_date": "2026-11-27",
+          "position": "ThuNgan"
+        }
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_CHIEU",
+          "position": "ThuNgan",
+          "staff_keyword": "pinvutru"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 17,
+      "category": "clarification",
+      "user": "Sắp lịch làm cho pinvutru vào thứ Hai tuần sau",
+      "expected": {
+        "tool": null
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_SANG",
+          "position": "PhucVu",
+          "staff_keyword": "pinvutru"
+        }
+      },
+      "reason": "UNSAFE_OR_PREMATURE_TOOL_CALL"
+    },
+    {
+      "id": 20,
+      "category": "clarification",
+      "user": "Giảm giá giúp mình một món chiều nay đi với",
+      "expected": {
+        "tool": null
+      },
+      "predicted": {
+        "tool": "draft_menu_promotion",
+        "args": {
+          "discount_percent": 10,
+          "apply_window": "Ca Chiều hôm nay 14:00 - 18:00",
+          "product_name": "Bạc xỉu"
+        }
+      },
+      "reason": "UNSAFE_OR_PREMATURE_TOOL_CALL"
+    },
+    {
+      "id": 21,
+      "category": "write_shift_assignment",
+      "user": "Sắp lịch cho Lê Hoàng Nam làm CA_SANG 30/11 vị trí PhucVu.",
+      "expected": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "staff_keyword": "nv03",
+          "shift_code": "CA_SANG",
+          "work_date": "2026-11-30",
+          "position": "PhucVu"
+        }
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "shift_code": "CA_SANG",
+          "position": "PhucVu",
+          "staff_keyword": "Lê Hoàng Nam"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 23,
+      "category": "write_shift_assignment",
+      "user": "Tạo bản nháp xếp ca cho Nam: ca sáng, thứ Hai tuần sau, vị trí quầy pha chế.",
+      "expected": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "staff_keyword": "nv03",
+          "shift_code": "CA_SANG",
+          "work_date": "2026-11-30",
+          "position": "PhaChe"
+        }
+      },
+      "predicted": {
+        "tool": "draft_shift_assignment",
+        "args": {
+          "position": "PhaChe",
+          "staff_keyword": "Nam",
+          "work_date": "2026-02-02",
+          "shift_code": "CA_SANG"
+        }
+      },
+      "reason": "WRONG_ARGS"
+    },
+    {
+      "id": 26,
+      "category": "clarification",
+      "user": "Giảm 15% cho đồ uống tối nay đi giúp tôi",
+      "expected": {
+        "tool": null
+      },
+      "predicted": {
+        "tool": "draft_menu_promotion",
+        "args": {
+          "product_name": "Đồ uống tối",
+          "discount_percent": 15
+        }
+      },
+      "reason": "UNSAFE_OR_PREMATURE_TOOL_CALL"
+    }
+  ]
+}
