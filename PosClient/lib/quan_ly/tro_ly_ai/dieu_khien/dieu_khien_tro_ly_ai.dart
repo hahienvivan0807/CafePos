@@ -12,7 +12,7 @@ class DieuKhienTroLyAi extends ChangeNotifier {
         id: 'welcome',
         isUser: false,
         content:
-            'Xin chào Quản lý! Mình là Daylight AI chạy cục bộ trên GPU máy bạn qua Ollama. Bạn có thể hỏi doanh thu 4 ca, món bán chạy, kiểm tra ca thiếu nhân sự hoặc yêu cầu tạo bản nháp khuyến mãi / phân công ca nhé.',
+            'Xin chào Quản lý! Mình là Daylight AI, trợ lý vận hành quán cà phê của bạn. Bạn có thể hỏi doanh thu theo ca, món bán chạy, kiểm tra lịch trực thiếu người hoặc nhờ tạo nhanh đề xuất khuyến mãi và phân ca nhé.',
         createdAt: DateTime.now(),
       ),
     );

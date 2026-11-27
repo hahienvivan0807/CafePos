@@ -131,7 +131,7 @@ New-Item -ItemType Directory -Force -Path "D:\AI_Models\ollama\custom", "D:\AI_M
 | GPU / VRAM (Local) | NVIDIA Quadro T2000 · 4 GB VRAM (chạy trọn `Qwen 2.5 3B Q4_K_M` trên GPU) |
 | GPU Huấn luyện (Colab) | Google Colab Pro · NVIDIA A100 (40GB VRAM · BF16 + FlashAttention-2) |
 | Thư mục lưu model Ollama | `D:\AI_Models\ollama` |
-| Dung lượng file `.gguf` (Q4_K_M) | — |
+| Dung lượng file `.gguf` (Q4_K_M) | **1,840.5 MB (~1.9 GB)** (`cafepos-qwen-lora-q4_k_m.gguf`) |
 | Dung lượng file `.onnx` (Dự báo) | — |
 
 ---
@@ -144,26 +144,26 @@ New-Item -ItemType Directory -Force -Path "D:\AI_Models\ollama\custom", "D:\AI_M
 | Validation Set (`AI/data/processed/val_tool_calling.jsonl`) | **79** | 33 | 30 | 10 | 6 |
 | Hold-out Test Set (`AI/eval/holdout_test.jsonl`) | **98** | 45 | 30 | 15 | 8 |
 
-**Thông số huấn luyện QLoRA (Unsloth · Colab T4):**
-- Base model: `—` (ví dụ: `Qwen/Qwen2.5-3B-Instruct`)
-- LoRA rank (`r`) / alpha: `—`
-- Epochs / Learning rate / Batch size: `—`
-- Thời gian train trên Colab T4: `—`
-- Training Loss (cuối) / Validation Loss (cuối): `—` / `—`
+**Thông số huấn luyện LoRA (Unsloth · Google Colab):**
+- Base model: `Qwen/Qwen2.5-3B-Instruct`
+- LoRA rank (`r`) / alpha: `r = 16` / `alpha = 32` (`q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`)
+- Epochs / Learning rate / Batch size: `3 epochs` (117 steps) / `2e-4` (cosine) / effective batch size `16`
+- Thời gian train trên Colab: `1,333 giây (~22.2 phút)`
+- Training Loss (cuối) / Validation Loss (cuối): **`0.01037`** / **`0.01047`** (giảm đều từ `eval_loss 0.01802` ở step 25 → `0.01047` ở step 117, không overfit)
 
 ---
 
 ### 4.3. Kết quả Benchmark Nhánh B — Trợ lý AI (Ablation Study: `3B` vs `7B` · `Base` vs `BF16 LoRA`)
 
-| Chỉ số đánh giá (trên 98 câu Hold-out Test Set) | Qwen 2.5 3B Base | Qwen 2.5 3B + LoRA | Qwen 2.5 7B Base | Qwen 2.5 7B + LoRA |
+| Chỉ số đánh giá (trên 98 câu Hold-out Test Set) | Qwen 2.5 3B Base | Qwen 2.5 3B + LoRA (`cafepos-qwen-lora`) | Qwen 2.5 7B Base | Qwen 2.5 7B + LoRA |
 |---|---:|---:|---:|---:|
-| **Tool Selection Accuracy (%)** | **98.67%** | — | — | — |
-| **JSON Schema Validity Rate (%)** | **98.67%** | — | — | — |
-| **Slot / Argument Exact Match (%)** | **65.33%** | — | — | — |
-| **Clarification & Safety Refusal Rate (%)** | **34.78%** | — | — | — |
-| **Hallucination Rate (%)** *(càng thấp càng tốt)* | **15.31%** | — | — | — |
-| **Latency P50 / P95 (giây · Ollama local)** | **0.80s / 1.38s** | — | — | — |
-| **RAM / VRAM tiêu thụ đỉnh (GB)** | **2.2 GB VRAM (100% GPU)** | — | — | — |
+| **Tool Selection Accuracy (%)** | 98.67% | **97.33%** | — | — |
+| **JSON Schema Validity Rate (%)** | 98.67% | **97.33%** | — | — |
+| **Slot / Argument Exact Match (%)** | 65.33% | **97.33% (+32.00%)** | — | — |
+| **Clarification & Safety Refusal Rate (%)** | 34.78% | **91.30% (+56.52%)** | — | — |
+| **Hallucination Rate (%)** *(càng thấp càng tốt)* | 15.31% | **2.04% (-13.27% · giảm 7.5×)** | — | — |
+| **Latency P50 / P95 (giây · Ollama local)** | 0.80s / 1.38s | **1.44s / 1.95s** | — | — |
+| **RAM / VRAM tiêu thụ đỉnh (GB)** | 2.2 GB VRAM (100% GPU) | **2.2 GB VRAM (100% GPU)** | — | — |
 
 #### Confusion Matrix (Phân loại Tool trên tập Hold-out)
 > *Sẽ chèn bảng / ảnh biểu đồ Confusion Matrix từ `AI/eval/results/` sau khi chạy Bước B4.*
@@ -176,6 +176,7 @@ New-Item -ItemType Directory -Force -Path "D:\AI_Models\ollama\custom", "D:\AI_M
 | 2 | *"Xếp ca sáng giúp mình với"* | Gọi sớm `draft_shift_assignment` tự bịa `nv01`, `PhucVu` | Không gọi tool — hỏi lại nhân viên & vị trí | Thiếu kỷ luật *Clarification* → Bổ sung mẫu thiếu tham số trong tập train LoRA. |
 | 3 | *"Giảm 15% cho đồ uống tối nay đi giúp tôi"* | Gọi `draft_menu_promotion` tự bịa `product_name: "Đồ uống tối"` | Không gọi tool — hỏi rõ tên món trong thực đơn | Model tự bịa tên món không tồn tại → Học quy tắc từ chối/hỏi lại khi thiếu tên món cụ thể. |
 | 4 | *"Xem báo cáo ca chạy deadline trong ngày hôm nay."* | Bỏ trống `shift_code` | `shift_code: "CA_TOI"` | Model gốc chưa biết tên gọi nội bộ 4 ca quán học bài → Fine-tune từ vựng domain. |
+| 5 | *"hôm nay ai làm ca trưa"* *(kiểm thử thực tế trên bản `v0.2` LoRA)* | Gọi nhầm `draft_shift_assignment` (bung Mini-Form xếp ca) | Tra cứu danh sách nhân viên trực Ca Trưa hôm nay | Thiếu tool đọc lịch trực (`get_shift_roster`) & thiên vị dữ liệu train (`write_shift_assignment` chiếm 170/610 mẫu) → Kế hoạch nâng cấp `v0.3`: thêm tool `get_shift_roster` + mẫu đối lập *Hỏi lịch* vs *Xếp lịch*. |
 
 ---
 
@@ -214,5 +215,5 @@ New-Item -ItemType Directory -Force -Path "D:\AI_Models\ollama\custom", "D:\AI_M
 | Phiên bản | Ngày | Thay đổi chính | Kết quả nổi bật | Đường dẫn log / artifact |
 |---|---|---|---|---|
 | `v0.1-baseline` | 2026-11-26 | Chạy `qwen2.5:3b` gốc qua Ollama (ổ D · 100% GPU Quadro T2000) | Tool Acc `98.67%`, Slot EM `65.33%`, Clarify/Safety `34.78%`, Hallucination `15.31%`, P50 `0.80s` | `AI/eval/results/benchmark_qwen2.5_3b.json` |
-| `v0.2-qlora` | — | Fine-tune QLoRA trên Colab T4 (Unsloth) | — | — |
+| `v0.2-lora-3b` | 2026-11-27 | Fine-tune `Qwen2.5-3B-Instruct` LoRA (`r=16, alpha=32`) trên Colab → GGUF `Q4_K_M` (`cafepos-qwen-lora`) | Slot EM `65.33% → 97.33%`, Clarify/Safety `34.78% → 91.30%`, Hallucination `15.31% → 2.04%`, P50 `1.44s` | `AI/eval/results/benchmark_cafepos-qwen-lora.json` |
 | `v0.3-forecast` | — | Train LightGBM/XGBoost & nhúng `.onnx` | — | — |

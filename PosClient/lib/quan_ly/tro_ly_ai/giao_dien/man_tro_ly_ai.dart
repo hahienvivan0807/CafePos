@@ -114,7 +114,6 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
   Widget _buildChatSection() {
     final st = _ctrl.trangThai;
     final online = st?.ollamaTrucTuyen ?? false;
-    final modelName = st?.tenModel ?? 'qwen2.5:3b';
 
     return Container(
       decoration: BoxDecoration(
@@ -226,7 +225,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        online ? 'Sẵn sàng · $modelName' : 'Chưa kết nối Ollama',
+                        online ? 'Sẵn sàng' : 'Tạm gián đoạn',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
@@ -485,7 +484,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
                               border: Border.all(color: AppColors.borderSoft),
                             ),
                             child: Text(
-                              'Tool: ${msg.toolUsed}',
+                              _friendlyToolLabel(msg.toolUsed!),
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -570,7 +569,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Daylight AI đang suy luận trên GPU & tra cứu dữ liệu thật...',
+                'AI đang suy nghĩ...',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -620,7 +619,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Ghi chú hệ thống',
+                      'Nguyên tắc hỗ trợ',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -629,7 +628,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Đồng bộ lại trạng thái Ollama',
+                    tooltip: 'Làm mới trạng thái trợ lý',
                     onPressed: _ctrl.dangTaiTrangThai
                         ? null
                         : _ctrl.taiTrangThai,
@@ -645,7 +644,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  'Dữ liệu từ backend: POST /api/manager/ai-assistant/chat. Lưu ý: Backend chỉ ghi nhận thay đổi vào PostgreSQL sau khi quản lý bấm Xác nhận hợp lệ trên Mini-Form.',
+                  'Daylight AI đọc trực tiếp số liệu bán hàng và lịch trực của quán. Mọi đề xuất thay đổi như giảm giá món hay phân ca chỉ có hiệu lực sau khi Quản lý kiểm tra và bấm Xác nhận.',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     height: 1.5,
@@ -655,7 +654,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
               ),
               const SizedBox(height: 14),
               Text(
-                'TRẠNG THÁI PHIÊN KẾT NỐI',
+                'TRẠNG THÁI TRỢ LÝ',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -665,24 +664,24 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
               ),
               const SizedBox(height: 8),
               _buildInfoRow(
-                'Model đang chạy',
-                st?.tenModel ?? 'qwen2.5:3b',
+                'Phiên bản trợ lý',
+                'Daylight AI · Quản lý quán',
               ),
               _buildInfoRow(
-                'Ollama local',
+                'Tình trạng kết nối',
                 st == null
                     ? 'Đang kiểm tra...'
-                    : (st.ollamaTrucTuyen ? 'Trực tuyến (GPU)' : 'Ngoại tuyến'),
+                    : (st.ollamaTrucTuyen ? 'Đang trực tuyến' : 'Tạm gián đoạn'),
               ),
               if (_ctrl.doTreGanNhatMs != null)
                 _buildInfoRow(
-                  'Phản hồi gần nhất',
+                  'Tốc độ phản hồi',
                   '${(_ctrl.doTreGanNhatMs! / 1000).toStringAsFixed(2)} giây',
                 ),
               if (st != null && !st.ollamaTrucTuyen) ...[
                 const SizedBox(height: 8),
                 Text(
-                  st.thongBaoTrangThai,
+                  'Trợ lý AI hiện tạm gián đoạn. Vui lòng thử bấm làm mới sau giây lát.',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: AppColors.danger,
@@ -718,7 +717,9 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
                     ),
                   ),
                   Text(
-                    _ctrl.dangTaiTrangThai ? 'Đang đồng bộ...' : 'Dữ liệu thật',
+                    _ctrl.dangTaiTrangThai
+                        ? 'Đang đồng bộ...'
+                        : 'Cập nhật trực tiếp',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
@@ -749,7 +750,7 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
               ),
               const SizedBox(height: 10),
               _buildKpiTile(
-                label: 'Slot ca thiếu định biên tuần này',
+                label: 'Ca thiếu người tuần này',
                 value: ctx != null ? '${ctx.caThieuDinhBien} khung ca' : '—',
               ),
             ],
@@ -820,6 +821,17 @@ class _ManTroLyAiState extends State<ManTroLyAi> {
         ],
       ),
     );
+  }
+
+  String _friendlyToolLabel(String toolName) {
+    return switch (toolName) {
+      'get_shift_revenue' => 'Báo cáo doanh thu ca',
+      'get_top_products' => 'Thống kê món bán chạy',
+      'get_weekly_shift_gaps' => 'Kiểm tra lịch trực',
+      'draft_menu_promotion' => 'Đề xuất khuyến mãi',
+      'draft_shift_assignment' => 'Đề xuất phân ca',
+      _ => 'Tra cứu dữ liệu quán',
+    };
   }
 
   String _formatClock(DateTime dt) {
