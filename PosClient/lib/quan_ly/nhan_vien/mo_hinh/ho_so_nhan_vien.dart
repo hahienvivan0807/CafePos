@@ -64,6 +64,7 @@ class DuLieuThemNhanVien {
   final String hoTen;
   final String soDienThoai;
   final String tenDangNhap;
+  final String matKhau;
   final String vaiTro;
   final String trangThai;
 
@@ -72,6 +73,7 @@ class DuLieuThemNhanVien {
     required this.hoTen,
     required this.soDienThoai,
     required this.tenDangNhap,
+    required this.matKhau,
     required this.vaiTro,
     required this.trangThai,
   });

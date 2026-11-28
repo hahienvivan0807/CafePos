@@ -8,6 +8,7 @@ using CafePos.Infrastructure;
 using CafePos.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -135,7 +136,9 @@ builder.Services.AddCors(options =>
                     return false;
                 }
                 return uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
-                       uri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase);
+                       uri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+                       uri.Host.EndsWith(".ngrok-free.dev", StringComparison.OrdinalIgnoreCase) ||
+                       uri.Host.EndsWith(".ngrok-free.app", StringComparison.OrdinalIgnoreCase);
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -149,6 +152,15 @@ var app = builder.Build();
 
 // Tự động khởi tạo bảng pos."CaLamViec" trên PostgreSQL (không seed tài khoản ảo)
 await CafePosDbSeeder.InitializeDatabaseAsync(app.Services);
+
+// Nhận diện đúng HTTPS khi chạy sau Reverse Proxy như ngrok (X-Forwarded-Proto: https)
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedOptions.KnownIPNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
 
 app.UseCors("FlutterWebCors");
 

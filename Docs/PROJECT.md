@@ -4,9 +4,15 @@ Dự án cá nhân cho portfolio Software/AI Engineer. POS phục vụ tại bà
 
 ## Vai trò
 
-- **Nhân viên** xem sơ đồ bàn, mở bàn, tạo đơn, ghi món, yêu cầu hủy món, hiển thị VietQR, xem đơn đã trả và trả bàn.
-- **Quản lý** quản lý menu và giá, duyệt hoặc từ chối hủy món, đối soát, xem báo cáo và dự báo, dùng trợ lý AI.
+- **Nhân viên** chấm công vào/ra ca, xem lịch làm việc cá nhân/chung, xem sơ đồ bàn, mở bàn, tạo đơn, ghi món, yêu cầu hủy món, hiển thị VietQR, xem đơn đã trả và trả bàn.
+- **Quản lý** quản lý menu và giá, quản lý nhân viên & phân ca, duyệt hoặc từ chối hủy món, đối soát, xem báo cáo và dự báo, dùng trợ lý AI.
 - Khách gọi món với nhân viên và quét VietQR bằng app ngân hàng. QR dùng để thanh toán.
+
+## Không gian Nhân viên & Quy tắc Chấm công
+
+- **Chấm công 3 lớp (Định vị + Wi-Fi quán + Face ID):** Thẻ **Chấm công** trên Trang chủ Nhân viên dùng để mở ca / kết thúc ca (`pos."CaLamViec"`), với thiết kế xác thực kết hợp **Định vị GPS (Geofencing tại quán)**, **Wi-Fi nội bộ quán** và **Face ID (Camera)** nhằm chống chấm công hộ.
+- **Khóa bảo vệ Sơ đồ bàn khi chưa trong ca:** Khi nhân viên **chưa bắt đầu ca làm việc**, nếu bấm vào mục **Dịch vụ tại bàn (Sơ đồ bàn)** thì hệ thống hiển thị **màn hình trạng thái trống / khóa bảo vệ**, nhắc nhân viên quay lại **Chấm công vào ca** trước khi mở bàn hoặc ghi món.
+- **Kỳ lương hiện tại:** Giữ trạng thái **trống dữ liệu** (không hiển thị số giả / tháng cố định), sẽ đồng bộ sau khi hoàn thiện nghiệp vụ tính công & đơn giá lương.
 
 ## Luồng POS
 

@@ -20,6 +20,8 @@ class _HopThoaiThemNhanVienState extends State<HopThoaiThemNhanVien> {
   final _hoTenCtrl = TextEditingController();
   final _soDienThoaiCtrl = TextEditingController();
   final _tenDangNhapCtrl = TextEditingController();
+  final _matKhauCtrl = TextEditingController();
+  bool _anMatKhau = true;
 
   String? _vaiTro;
   String? _trangThai;
@@ -31,6 +33,7 @@ class _HopThoaiThemNhanVienState extends State<HopThoaiThemNhanVien> {
     _hoTenCtrl.dispose();
     _soDienThoaiCtrl.dispose();
     _tenDangNhapCtrl.dispose();
+    _matKhauCtrl.dispose();
     super.dispose();
   }
 
@@ -54,6 +57,7 @@ class _HopThoaiThemNhanVienState extends State<HopThoaiThemNhanVien> {
         hoTen: _hoTenCtrl.text.trim(),
         soDienThoai: _soDienThoaiCtrl.text.trim(),
         tenDangNhap: _tenDangNhapCtrl.text.trim(),
+        matKhau: _matKhauCtrl.text,
         vaiTro: _vaiTro!,
         trangThai: _trangThai!,
       ),
@@ -172,7 +176,20 @@ class _HopThoaiThemNhanVienState extends State<HopThoaiThemNhanVien> {
                             ),
                             const SizedBox(height: 14),
 
-                            _buildTenDangNhapField(),
+                            if (isTwoCols)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: _buildTenDangNhapField()),
+                                  const SizedBox(width: 18),
+                                  Expanded(child: _buildMatKhauField()),
+                                ],
+                              )
+                            else ...[
+                              _buildTenDangNhapField(),
+                              const SizedBox(height: 14),
+                              _buildMatKhauField(),
+                            ],
                             const SizedBox(height: 14),
 
                             if (isTwoCols)
@@ -223,7 +240,7 @@ class _HopThoaiThemNhanVienState extends State<HopThoaiThemNhanVien> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      'Mật khẩu tạm thời sẽ được tạo ngẫu nhiên theo mã PIN 4 chữ số và gửi qua tin nhắn SMS tới số điện thoại vừa đăng ký.',
+                                      'Mật khẩu được mã hóa trên đường truyền HTTPS (TLS) và băm an toàn bằng PBKDF2-SHA512 trước khi lưu vào cơ sở dữ liệu — không bao giờ lưu dạng chữ thường.',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12.5,
                                         color: AppColors.inkSecondary,
@@ -463,6 +480,47 @@ class _HopThoaiThemNhanVienState extends State<HopThoaiThemNhanVien> {
           decoration: _inputDecoration(
             hint: 'Nhập số điện thoại di động...',
             icon: Icons.call_outlined,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMatKhauField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel('Mật khẩu', batBuoc: true),
+        const SizedBox(height: 6),
+        TextFormField(
+          key: const Key('them_nv_mat_khau'),
+          controller: _matKhauCtrl,
+          obscureText: _anMatKhau,
+          validator: (v) {
+            final raw = v ?? '';
+            if (raw.length < 6) {
+              return 'Mật khẩu cần tối thiểu 6 ký tự.';
+            }
+            if (!RegExp(r'\d').hasMatch(raw)) {
+              return 'Mật khẩu cần có ít nhất 1 chữ số.';
+            }
+            return null;
+          },
+          decoration: _inputDecoration(
+            hint: 'Ít nhất 6 ký tự, có chữ số...',
+            icon: Icons.key_outlined,
+          ).copyWith(
+            suffixIcon: IconButton(
+              tooltip: _anMatKhau ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
+              onPressed: () => setState(() => _anMatKhau = !_anMatKhau),
+              icon: Icon(
+                _anMatKhau
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                size: 18,
+                color: AppColors.inkMuted,
+              ),
+            ),
           ),
         ),
       ],

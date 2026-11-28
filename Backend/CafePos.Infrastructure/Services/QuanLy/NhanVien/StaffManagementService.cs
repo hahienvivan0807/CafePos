@@ -179,9 +179,16 @@ public class StaffManagementService : IStaffManagementService
             LockoutEnabled = true
         };
 
-        // Sinh mật khẩu khởi tạo ngẫu nhiên đạt chuẩn độ dài >= 6 có chữ số (không lưu/log plaintext)
-        var generatedTempPassword = GenerateSecureTempPassword();
-        var createResult = await _userManager.CreateAsync(newUser, generatedTempPassword);
+        var rawPassword = request.Password ?? string.Empty;
+        if (rawPassword.Length < 6 || !rawPassword.Any(char.IsDigit))
+        {
+            return ServiceResult<StaffMemberDto>.Failure(
+                "Mật khẩu phải từ 6 ký tự trở lên và có ít nhất 1 chữ số.",
+                "INVALID_PASSWORD", 400);
+        }
+
+        // Lưu mật khẩu bằng ASP.NET Core Identity (tự động băm PBKDF2-HMAC-SHA512 + salt ngẫu nhiên, không lưu plaintext)
+        var createResult = await _userManager.CreateAsync(newUser, rawPassword);
         if (!createResult.Succeeded)
         {
             await tx.RollbackAsync(ct);
@@ -484,12 +491,5 @@ public class StaffManagementService : IStaffManagementService
     {
         if (string.IsNullOrWhiteSpace(raw)) return null;
         return NormalizeRoleInput(raw);
-    }
-
-    private static string GenerateSecureTempPassword()
-    {
-        var pin = RandomNumberGenerator.GetInt32(1000, 9999);
-        var suffix = RandomNumberGenerator.GetInt32(10, 99);
-        return $"Pos{pin}{suffix}";
     }
 }

@@ -16,7 +16,8 @@ public record CreateStaffRequestDto(
     string PhoneNumber,
     string Username,
     string Role,        // "Staff" | "Manager" | "nhan-vien" | "quan-ly"
-    bool IsActive = true
+    bool IsActive = true,
+    string? Password = null
 );
 
 public record UpdateStaffRequestDto(

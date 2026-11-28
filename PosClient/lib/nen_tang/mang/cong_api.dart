@@ -31,6 +31,9 @@ class PosAuthApiClient {
     }
 
     final currentUri = Uri.base;
+    if (currentUri.scheme == 'https' && currentUri.host.isNotEmpty) {
+      return currentUri.origin;
+    }
     if (currentUri.port == 7179 || currentUri.port == 5180) {
       return currentUri.origin;
     }
@@ -635,6 +638,7 @@ class PosAuthApiClient {
     required String fullName,
     required String phoneNumber,
     required String username,
+    required String password,
     required String role,
     required bool isActive,
   }) async {
@@ -645,6 +649,7 @@ class PosAuthApiClient {
         'fullName': fullName.trim(),
         'phoneNumber': phoneNumber.trim(),
         'username': username.trim(),
+        'password': password,
         'role': role,
         'isActive': isActive,
       });

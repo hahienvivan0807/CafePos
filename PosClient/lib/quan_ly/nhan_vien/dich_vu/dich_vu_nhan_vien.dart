@@ -38,6 +38,7 @@ class DichVuNhanVien {
       fullName: duLieu.hoTen,
       phoneNumber: duLieu.soDienThoai,
       username: duLieu.tenDangNhap,
+      password: duLieu.matKhau,
       role: duLieu.vaiTro,
       isActive: duLieu.trangThai == 'dang-hoat-dong',
     );
