@@ -28,6 +28,8 @@ public class CafePosDbContext : IdentityDbContext<AppIdentityUser, AppIdentityRo
     public DbSet<DonHang> DonHangs => Set<DonHang>();
     public DbSet<DongMon> DongMons => Set<DongMon>();
     public DbSet<YeuCauHuyMon> YeuCauHuyMons => Set<YeuCauHuyMon>();
+    public DbSet<YeuCauQrThanhToan> YeuCauQrThanhToans => Set<YeuCauQrThanhToan>();
+    public DbSet<GiaoDichThanhToan> GiaoDichThanhToans => Set<GiaoDichThanhToan>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -343,6 +345,63 @@ public class CafePosDbContext : IdentityDbContext<AppIdentityUser, AppIdentityRo
             entity.HasOne(x => x.DongMon)
                 .WithMany(d => d.DanhSachYeuCauHuy)
                 .HasForeignKey(x => x.IdDongMon);
+        });
+
+        // 17. Bảng pos."YeuCauQrThanhToan"
+        builder.Entity<YeuCauQrThanhToan>(entity =>
+        {
+            entity.ToTable("YeuCauQrThanhToan", "pos");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("Id");
+            entity.Property(x => x.IdDonHang).HasColumnName("IdDonHang");
+            entity.Property(x => x.PhienBan).HasColumnName("PhienBan").HasDefaultValue(1);
+            entity.Property(x => x.MaThamChieu).HasColumnName("MaThamChieu").IsRequired().HasMaxLength(48);
+            entity.Property(x => x.SoTienVnd).HasColumnName("SoTienVnd");
+            entity.Property(x => x.MaNganHang).HasColumnName("MaNganHang").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.SoTaiKhoan).HasColumnName("SoTaiKhoan").IsRequired().HasMaxLength(40);
+            entity.Property(x => x.TenTaiKhoan).HasColumnName("TenTaiKhoan").IsRequired().HasMaxLength(120);
+            entity.Property(x => x.DuongDanAnhQr).HasColumnName("DuongDanAnhQr").IsRequired();
+            entity.Property(x => x.TrangThai).HasColumnName("TrangThai").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.TaoLuc).HasColumnName("TaoLuc").HasDefaultValueSql("now()");
+            entity.Property(x => x.CapNhatLuc).HasColumnName("CapNhatLuc");
+
+            entity.HasIndex(x => x.MaThamChieu).IsUnique();
+            entity.HasOne(x => x.DonHang)
+                .WithMany(d => d.DanhSachYeuCauQr)
+                .HasForeignKey(x => x.IdDonHang)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // 18. Bảng pos."GiaoDichThanhToan"
+        builder.Entity<GiaoDichThanhToan>(entity =>
+        {
+            entity.ToTable("GiaoDichThanhToan", "pos");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("Id");
+            entity.Property(x => x.IdDonHang).HasColumnName("IdDonHang");
+            entity.Property(x => x.IdYeuCauQr).HasColumnName("IdYeuCauQr");
+            entity.Property(x => x.PhuongThuc).HasColumnName("PhuongThuc").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.MaGiaoDichNganHang).HasColumnName("MaGiaoDichNganHang").HasMaxLength(120);
+            entity.Property(x => x.CongThanhToan).HasColumnName("CongThanhToan").HasMaxLength(64);
+            entity.Property(x => x.MaThamChieuKhop).HasColumnName("MaThamChieuKhop").HasMaxLength(48);
+            entity.Property(x => x.NoiDungChuyenKhoan).HasColumnName("NoiDungChuyenKhoan");
+            entity.Property(x => x.SoTienVnd).HasColumnName("SoTienVnd");
+            entity.Property(x => x.CanDoiSoat).HasColumnName("CanDoiSoat").HasDefaultValue(false);
+            entity.Property(x => x.TrangThaiDoiSoat).HasColumnName("TrangThaiDoiSoat").IsRequired().HasMaxLength(24);
+            entity.Property(x => x.GhiChuDoiSoat).HasColumnName("GhiChuDoiSoat");
+            entity.Property(x => x.IdNguoiXacNhan).HasColumnName("IdNguoiXacNhan");
+            entity.Property(x => x.GhiNhanLuc).HasColumnName("GhiNhanLuc").HasDefaultValueSql("now()");
+            entity.Property(x => x.DoiSoatLuc).HasColumnName("DoiSoatLuc");
+
+            entity.HasOne(x => x.DonHang)
+                .WithMany(d => d.DanhSachGiaoDich)
+                .HasForeignKey(x => x.IdDonHang)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.YeuCauQr)
+                .WithMany()
+                .HasForeignKey(x => x.IdYeuCauQr)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

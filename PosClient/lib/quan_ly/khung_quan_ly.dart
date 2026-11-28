@@ -5,9 +5,11 @@ import '../dung_chung/dang_nhap/giao_dien/thanh_phan/bieu_tuong_ca_phe.dart';
 import '../dung_chung/dang_nhap/mo_hinh/phien_dang_nhap.dart';
 import '../dung_chung/dich_vu_ban/giao_dien/hop_thoai_mo_ban.dart';
 import '../dung_chung/dich_vu_ban/mo_hinh/du_lieu_ban.dart';
+import '../dung_chung/thanh_toan/hop_thoai_thanh_toan_vietqr.dart';
 import '../nen_tang/giao_dien/bang_mau.dart';
 import '../nen_tang/mang/cong_api.dart';
 import 'bao_cao/giao_dien/man_bao_cao_va_du_bao.dart';
+import 'doi_soat/man_doi_soat_giao_dich.dart';
 import 'nhan_vien/giao_dien/man_quan_ly_nhan_vien.dart';
 import 'phan_ca/giao_dien/man_phan_ca_va_gio_lam.dart';
 import 'tro_ly_ai/giao_dien/man_tro_ly_ai.dart';
@@ -2126,6 +2128,49 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
                                 ),
                               ),
                             ),
+                            if (order.status != 'paid') ...[
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    showDialog<void>(
+                                      context: context,
+                                      builder: (_) => HopThoaiThanhToanVietQr(
+                                        apiClient: widget.apiClient,
+                                        orderId: order.id,
+                                        orderLabel: order.displayLabel,
+                                        onPaymentUpdated: () =>
+                                            _loadManagerOverview(
+                                              focusTableId: table.tableId,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.mossMid,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.qr_code_2_rounded,
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    'Thanh toán VietQR / Tiền mặt',
+                                    style: GoogleFonts.beVietnamPro(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       );
@@ -2224,15 +2269,9 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
 
   /// 3. Màn Đối soát & Duyệt hủy món (hiển thị trạng thái trống / chưa tích hợp API theo đúng phạm vi)
   Widget _buildReconciliationSection() {
-    return _buildPendingIntegrationSection(
-      badge: 'Đối soát giao dịch & Duyệt hủy món',
-      title: 'Đối soát VietQR, Thu dư & Duyệt yêu cầu hủy món',
-      description:
-          'Theo đặc tả PROJECT.md: các khoản thanh toán đến muộn sau khi đổi QR (ví dụ nhận cả 65.000đ và 90.000đ) và danh sách yêu cầu hủy món có lý do từ nhân viên sẽ hiển thị tại đây để Quản lý duyệt hoặc đối soát.',
-      statusTitle: 'Chưa có giao dịch cần đối soát / Chưa tích hợp API đối soát ở bước này',
-      statusDetail:
-          'Trong phạm vi bước hiện tại, hệ thống giữ nguyên hợp đồng API hiện có và chưa bổ sung endpoint nghiệp vụ mới ngoài luồng đăng nhập & tổng quan sẵn có.',
-      icon: Icons.fact_check_outlined,
+    return ManDoiSoatGiaoDich(
+      apiClient: widget.apiClient,
+      onToast: _showToast,
     );
   }
 
@@ -2243,130 +2282,6 @@ class _ManagerShellScreenState extends State<ManagerShellScreen> {
       child: ManTroLyAi(
         apiClient: widget.apiClient,
         onToast: _showToast,
-      ),
-    );
-  }
-
-  Widget _buildPendingIntegrationSection({
-    required String badge,
-    required String title,
-    required String description,
-    required String statusTitle,
-    required String statusDetail,
-    required IconData icon,
-  }) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppColors.daylightSurface,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.borderSoft),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppColors.mossSoft,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon, size: 30, color: AppColors.mossMid),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.daylightSubtle,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: AppColors.borderSoft),
-                  ),
-                  child: Text(
-                    badge,
-                    style: GoogleFonts.beVietnamPro(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mossMid,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.beVietnamPro(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.inkPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.beVietnamPro(
-                    fontSize: 13.5,
-                    color: AppColors.inkSecondary,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.amberPreviewBg,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.amberPreviewBorder),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.info_outline_rounded,
-                        color: AppColors.amberPreviewInk,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              statusTitle,
-                              style: GoogleFonts.beVietnamPro(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.amberPreviewInk,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              statusDetail,
-                              style: GoogleFonts.beVietnamPro(
-                                fontSize: 12.5,
-                                color: AppColors.amberPreviewInk,
-                                height: 1.45,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

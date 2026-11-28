@@ -1605,6 +1605,292 @@ class PosAuthApiClient {
     }
   }
 
+  /// Lấy trạng thái thanh toán VietQR & giao dịch của 1 đơn (GET /api/payments/orders/{orderId})
+  Future<ApiResult<Map<String, dynamic>>> getOrderPaymentStateRaw(
+    int orderId,
+  ) async {
+    try {
+      final response = await _http
+          .get(
+            Uri.parse('$baseUrl/api/payments/orders/$orderId'),
+            headers: _buildHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã tải trạng thái thanh toán.')
+                .toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải trạng thái thanh toán.').toString(),
+        errorCode: (body['errorCode'] ?? 'PAYMENT_STATE_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải trạng thái thanh toán.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Sinh hoặc làm mới mã VietQR cho đơn (POST /api/payments/orders/{orderId}/vietqr)
+  Future<ApiResult<Map<String, dynamic>>> generateOrderVietQrRaw(
+    int orderId,
+  ) async {
+    try {
+      await _ensureCsrfToken();
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/payments/orders/$orderId/vietqr'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: '{}',
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/payments/orders/$orderId/vietqr'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: '{}',
+            )
+            .timeout(const Duration(seconds: 10));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã tạo mã VietQR.').toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tạo mã VietQR.').toString(),
+        errorCode: (body['errorCode'] ?? 'VIETQR_CREATE_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tạo mã VietQR.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Ghi nhận thu tiền mặt cho đơn (POST /api/payments/orders/{orderId}/cash)
+  Future<ApiResult<Map<String, dynamic>>> recordCashPaymentRaw(
+    int orderId, {
+    int? receivedAmountVnd,
+    String? note,
+  }) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode({
+        'receivedAmountVnd': receivedAmountVnd,
+        'note': note,
+      });
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/payments/orders/$orderId/cash'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/payments/orders/$orderId/cash'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 10));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã thu tiền mặt thành công.')
+                .toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể ghi nhận thanh toán tiền mặt.')
+            .toString(),
+        errorCode: (body['errorCode'] ?? 'CASH_PAYMENT_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi thu tiền mặt.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Giả lập webhook ngân hàng báo nhận tiền (Dev only - POST /api/payments/demo/simulate-webhook)
+  Future<ApiResult<Map<String, dynamic>>> simulateVietQrWebhookRaw({
+    required String referenceCode,
+    required int amountVnd,
+    String? bankTransactionId,
+  }) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode({
+        'referenceCode': referenceCode,
+        'amountVnd': amountVnd,
+        'bankTransactionId': bankTransactionId,
+        'gateway': 'MBBank (Demo)',
+      });
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/payments/demo/simulate-webhook'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse('$baseUrl/api/payments/demo/simulate-webhook'),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 10));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã xử lý webhook giả lập.')
+                .toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể giả lập webhook.').toString(),
+        errorCode: (body['errorCode'] ?? 'SIMULATE_WEBHOOK_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi giả lập webhook.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Lấy danh sách đối soát giao dịch (GET /api/manager/reconciliation)
+  Future<ApiResult<Map<String, dynamic>>> getReconciliationRaw({
+    String filter = 'all',
+  }) async {
+    try {
+      final uri = Uri.parse(
+        '$baseUrl/api/manager/reconciliation',
+      ).replace(queryParameters: {'filter': filter});
+      final response = await _http
+          .get(uri, headers: _buildHeaders())
+          .timeout(const Duration(seconds: 10));
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã tải danh sách đối soát.')
+                .toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể tải danh sách đối soát.').toString(),
+        errorCode: (body['errorCode'] ?? 'RECONCILIATION_LOAD_FAILED')
+            .toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi tải danh sách đối soát.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
+  /// Xác nhận đã xử lý đối soát giao dịch (POST /api/manager/reconciliation/{id}/resolve)
+  Future<ApiResult<Map<String, dynamic>>> resolveReconciliationRaw(
+    int transactionId, {
+    required String resolutionNote,
+  }) async {
+    try {
+      await _ensureCsrfToken();
+      final payload = jsonEncode({'resolutionNote': resolutionNote});
+      var response = await _http
+          .post(
+            Uri.parse('$baseUrl/api/manager/reconciliation/$transactionId/resolve'),
+            headers: _buildHeaders(includeCsrf: true),
+            body: payload,
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode == 400 &&
+          _decodeJson(response.body)['errorCode'] == 'INVALID_CSRF_TOKEN') {
+        await refreshAntiforgeryToken();
+        response = await _http
+            .post(
+              Uri.parse(
+                '$baseUrl/api/manager/reconciliation/$transactionId/resolve',
+              ),
+              headers: _buildHeaders(includeCsrf: true),
+              body: payload,
+            )
+            .timeout(const Duration(seconds: 10));
+      }
+      final body = _decodeJson(response.body);
+      if (response.statusCode == 200 && body['isSuccess'] == true) {
+        final data = body['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return ApiResult.success(
+            data,
+            message: (body['message'] ?? 'Đã hoàn tất đối soát.').toString(),
+          );
+        }
+      }
+      return ApiResult.failure(
+        (body['message'] ?? 'Không thể xác nhận đối soát.').toString(),
+        errorCode: (body['errorCode'] ?? 'RECONCILE_RESOLVE_FAILED').toString(),
+        statusCode: response.statusCode,
+      );
+    } catch (_) {
+      return ApiResult.failure(
+        'Lỗi kết nối khi xác nhận đối soát.',
+        errorCode: 'NETWORK_ERROR',
+        statusCode: 503,
+      );
+    }
+  }
+
   static Map<String, dynamic> _decodeJson(String raw) {
     if (raw.trim().isEmpty) return const {};
     try {

@@ -1,5 +1,6 @@
 using CafePos.Application.Interfaces.CaLam;
 using CafePos.Application.Interfaces.Pos;
+using CafePos.Application.Interfaces.Pos.ThanhToan;
 using CafePos.Application.Interfaces.QuanLy.BaoCao;
 using CafePos.Application.Interfaces.QuanLy.NhanVien;
 using CafePos.Application.Interfaces.QuanLy.PhanCa;
@@ -9,6 +10,7 @@ using CafePos.Infrastructure.Data;
 using CafePos.Infrastructure.Identity;
 using CafePos.Infrastructure.Services.CaLam;
 using CafePos.Infrastructure.Services.Pos;
+using CafePos.Infrastructure.Services.Pos.ThanhToan;
 using CafePos.Infrastructure.Services.QuanLy.BaoCao;
 using CafePos.Infrastructure.Services.QuanLy.NhanVien;
 using CafePos.Infrastructure.Services.QuanLy.PhanCa;
@@ -62,6 +64,7 @@ public static class DependencyInjection
         services.AddScoped<IShiftService, ShiftService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPosDashboardService, PosDashboardService>();
+        services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IStaffManagementService, StaffManagementService>();
         services.AddScoped<IReportAnalyticsService, ReportAnalyticsService>();
         services.AddScoped<IShiftScheduleService, ShiftScheduleService>();

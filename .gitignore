@@ -1,0 +1,12 @@
+# Không bao giờ đẩy file cấu hình bí mật lên GitHub
+.env
+.env.local
+.env.*.local
+
+# Build & IDE artifacts
+**/bin/
+**/obj/
+PosClient/build/
+PosClient/.dart_tool/
+.vs/
+*.user
