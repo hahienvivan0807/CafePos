@@ -145,6 +145,8 @@ public class DonHang
     public LuotBan? LuotBan { get; set; }
     public KhungCaLam? KhungCa { get; set; }
     public ICollection<DongMon> DanhSachDongMon { get; set; } = new List<DongMon>();
+    public ICollection<YeuCauQrThanhToan> DanhSachYeuCauQr { get; set; } = new List<YeuCauQrThanhToan>();
+    public ICollection<GiaoDichThanhToan> DanhSachGiaoDich { get; set; } = new List<GiaoDichThanhToan>();
 }
 
 /// <summary>
@@ -183,4 +185,52 @@ public class YeuCauHuyMon
     public string? LyDoTuChoi { get; set; }
 
     public DongMon? DongMon { get; set; }
+}
+
+/// <summary>
+/// Phiên mã VietQR đã sinh cho đơn hàng (ánh xạ bảng pos."YeuCauQrThanhToan").
+/// Khi khách gọi thêm món (65k -> 90k), bản cũ chuyển 'DaThayThe' nhưng vẫn giữ MaThamChieu để đối soát khoản đến muộn.
+/// </summary>
+public class YeuCauQrThanhToan
+{
+    public long Id { get; set; }
+    public long IdDonHang { get; set; }
+    public int PhienBan { get; set; } = 1;
+    public string MaThamChieu { get; set; } = string.Empty; // VD: POS1042V1
+    public long SoTienVnd { get; set; }
+    public string MaNganHang { get; set; } = "MB";
+    public string SoTaiKhoan { get; set; } = string.Empty;
+    public string TenTaiKhoan { get; set; } = string.Empty;
+    public string DuongDanAnhQr { get; set; } = string.Empty;
+    public string TrangThai { get; set; } = "DangCho"; // DangCho | DaThayThe | DaThuDu | DaHuy
+    public DateTimeOffset TaoLuc { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? CapNhatLuc { get; set; }
+
+    public DonHang? DonHang { get; set; }
+}
+
+/// <summary>
+/// Giao dịch thanh toán thực tế đã nhận (VietQR hoặc Tiền mặt) — ánh xạ bảng pos."GiaoDichThanhToan".
+/// Ràng buộc UNIQUE trên MaGiaoDichNganHang để đảm bảo Idempotency (chống cộng tiền 2 lần).
+/// </summary>
+public class GiaoDichThanhToan
+{
+    public long Id { get; set; }
+    public long IdDonHang { get; set; }
+    public long? IdYeuCauQr { get; set; }
+    public string PhuongThuc { get; set; } = "vietqr"; // vietqr | cash
+    public string? MaGiaoDichNganHang { get; set; } // UNIQUE khi khác NULL
+    public string? CongThanhToan { get; set; } // MBBank | VietinBank | DemoWebhook | Cash
+    public string? MaThamChieuKhop { get; set; }
+    public string? NoiDungChuyenKhoan { get; set; }
+    public long SoTienVnd { get; set; }
+    public bool CanDoiSoat { get; set; }
+    public string TrangThaiDoiSoat { get; set; } = "KhongCan"; // KhongCan | ChoXuLy | DaXuLy
+    public string? GhiChuDoiSoat { get; set; }
+    public Guid? IdNguoiXacNhan { get; set; }
+    public DateTimeOffset GhiNhanLuc { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? DoiSoatLuc { get; set; }
+
+    public DonHang? DonHang { get; set; }
+    public YeuCauQrThanhToan? YeuCauQr { get; set; }
 }

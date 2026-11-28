@@ -11,6 +11,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
+// Tự động nạp file .env ở thư mục gốc dự án (nếu tồn tại) để dễ chỉnh sửa cấu hình mà không đẩy lên Git
+LoadDotEnvFile(Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env")));
+LoadDotEnvFile(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", ".env")));
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Thứ tự ưu tiên cấu hình chuỗi kết nối:
@@ -204,3 +208,21 @@ if (Directory.Exists(flutterBuildWebPath))
 }
 
 app.Run();
+
+static void LoadDotEnvFile(string filePath)
+{
+    if (!File.Exists(filePath)) return;
+    foreach (var rawLine in File.ReadAllLines(filePath))
+    {
+        var line = rawLine.Trim();
+        if (string.IsNullOrEmpty(line) || line.StartsWith('#')) continue;
+        var eqIdx = line.IndexOf('=');
+        if (eqIdx <= 0) continue;
+        var key = line[..eqIdx].Trim();
+        var value = line[(eqIdx + 1)..].Trim().Trim('"').Trim('\'');
+        if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value))
+        {
+            Environment.SetEnvironmentVariable(key, value);
+        }
+    }
+}

@@ -293,7 +293,7 @@ void main() {
       await tester.tap(find.byKey(const Key('nav_manager_reconciliation')));
       await tester.pumpAndSettle();
       expect(
-        find.text('Đối soát VietQR, Thu dư & Duyệt yêu cầu hủy món'),
+        find.text('Đối soát giao dịch VietQR & Thu dư'),
         findsOneWidget,
       );
 
